@@ -21,8 +21,9 @@
       --level: 0;
       --glow: 40px;
       --orb-scale: 1;
-      --core-opacity: 0.28;
+      --core-opacity: 0.32;
       --core-scale: 0.95;
+      --warm: #e8c547;
     }
     .orb {
       position: relative;
@@ -33,32 +34,55 @@
     }
     .glow {
       position: absolute;
-      inset: -15%;
+      inset: -18%;
       border-radius: 50%;
       background: radial-gradient(
         circle,
-        var(--cyan) 0%,
-        var(--violet) 45%,
-        transparent 70%
+        var(--warm) 0%,
+        var(--cyan) 28%,
+        var(--violet) 52%,
+        transparent 72%
       );
       filter: blur(var(--glow));
-      opacity: calc(0.35 + var(--level) * 0.55);
-      animation: breathe 4s ease-in-out infinite;
+      opacity: calc(0.38 + var(--level) * 0.52);
+      animation: breathe 4.2s ease-in-out infinite;
+    }
+    .glow-ghost {
+      position: absolute;
+      inset: -12%;
+      border-radius: 50%;
+      background: transparent;
+      box-shadow:
+        -3px 0 12px rgba(62, 232, 255, 0.35),
+        3px 0 12px rgba(244, 184, 0, 0.3);
+      opacity: calc(0.25 + var(--level) * 0.4);
+      pointer-events: none;
     }
     .shell {
       position: absolute;
       inset: 0;
       border-radius: 50%;
       background: radial-gradient(
-        circle at 35% 30%,
-        rgba(255, 255, 255, 0.35) 0%,
-        var(--cyan) 25%,
-        var(--violet) 60%,
-        rgba(0, 0, 0, 0.4) 100%
+        circle at 32% 28%,
+        rgba(255, 255, 255, 0.42) 0%,
+        var(--warm) 12%,
+        var(--cyan) 32%,
+        var(--violet) 62%,
+        rgba(8, 10, 18, 0.55) 100%
       );
       box-shadow:
-        inset 0 0 30px rgba(255, 255, 255, 0.2),
-        0 0 calc(20px + var(--level) * 40px) var(--cyan);
+        inset 0 0 28px rgba(255, 255, 255, 0.18),
+        inset 0 -8px 20px rgba(244, 184, 0, 0.15),
+        0 0 calc(18px + var(--level) * 36px) var(--cyan),
+        0 0 calc(8px + var(--level) * 16px) var(--warm);
+    }
+    .warm-ring {
+      position: absolute;
+      inset: -4%;
+      border-radius: 50%;
+      border: 2px solid var(--warm);
+      opacity: calc(0.35 + var(--level) * 0.45);
+      box-shadow: 0 0 12px rgba(244, 184, 0, 0.4);
     }
     .ring {
       position: absolute;
@@ -78,7 +102,7 @@
       position: absolute;
       inset: 22%;
       border-radius: 50%;
-      background: url("../assets/avatar.svg") center / cover no-repeat;
+      background: center / cover no-repeat;
       opacity: var(--core-opacity);
       transform: scale(var(--core-scale));
       filter: drop-shadow(0 0 8px var(--cyan));
@@ -110,8 +134,10 @@
   <div class="stage" id="stage">
     <div class="orb">
       <div class="glow"></div>
+      <div class="glow-ghost"></div>
       <div class="ring"></div>
       <div class="ring"></div>
+      <div class="warm-ring"></div>
       <div class="shell"></div>
       <div class="core"></div>
     </div>
@@ -119,12 +145,16 @@
   </div>
   <script>
     const CONFIG = {
+      // --- customize (your stream, your brand) ---
+      logoFile: "../assets/avatar.svg",
+      showLogo: true,
+      accentWarm: "#e8c547",
+      accentCyan: "#3ee8ff",
+      accentViolet: "#a855f7",
       micInputName: "",
       wsHost: "127.0.0.1",
       wsPort: 4455,
       wsPassword: "",
-      accentCyan: "#3ee8ff",
-      accentViolet: "#a855f7",
       smoothUp: 0.18,
       smoothDown: 0.08,
       idleThreshold: 0.06,
@@ -133,8 +163,15 @@
 
     const stage = document.getElementById("stage");
     const debugEl = document.getElementById("debug");
+    const coreEl = document.querySelector(".core");
+    stage.style.setProperty("--warm", CONFIG.accentWarm);
     stage.style.setProperty("--cyan", CONFIG.accentCyan);
     stage.style.setProperty("--violet", CONFIG.accentViolet);
+    if (CONFIG.showLogo && CONFIG.logoFile) {
+      coreEl.style.backgroundImage = `url("${CONFIG.logoFile}")`;
+    } else {
+      coreEl.style.display = "none";
+    }
 
     let level = 0;
     let targetLevel = 0;

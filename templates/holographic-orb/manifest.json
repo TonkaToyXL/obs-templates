@@ -1,9 +1,10 @@
 {
   "id": "holographic-orb",
   "name": "Holographic Voice-Reactive Orb",
-  "version": "1.0.0",
-  "description": "Browser source overlay — glowing orb that pulses with your mic via obs-websocket.",
+  "version": "1.2.0",
+  "description": "Neutral cosmic orb overlay — mic-reactive, fully customizable. Double-click install.",
   "obsMinVersion": "30.0",
+  "installType": "overlay",
   "tags": ["browser-source", "overlay", "mic-reactive", "obs-websocket"],
   "canvas": "any"
 }

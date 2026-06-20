@@ -14,8 +14,9 @@ ok() { printf '  ✓ %s\n' "$1"; }
 check_patterns() {
   local label="$1"
   local pattern="$2"
+  shift 2
   local hits
-  hits="$(rg -n --hidden -S "$pattern" "$TEMPLATES" "$DIST" 2>/dev/null || true)"
+  hits="$(rg -n --hidden -S "$pattern" "$@" "$TEMPLATES" "$DIST" 2>/dev/null || true)"
   if [[ -n "$hits" ]]; then
     red "FAIL: $label"
     echo "$hits"
@@ -33,7 +34,8 @@ check_patterns "no file:// URLs" 'file://'
 check_patterns "no personal username paths" 'account-owner|account-owner'
 check_patterns "no email addresses" '@gmail\.com|@[a-z0-9.-]+\.(com|io|net)'
 check_patterns "no cloud-sync paths" 'CloudStorage|GoogleDrive|Dropbox'
-check_patterns "no OBS config absolute paths" 'Library/Application Support/obs-studio'
+check_patterns "no OBS config absolute paths" 'Library/Application Support/obs-studio' \
+  --glob '!install.py' --glob '!Install.bat' --glob '!install.command'
 check_patterns "no hardcoded WebSocket passwords" 'wsPassword:\s*["\x27][^"\x27]+["\x27]'
 check_patterns "no API keys or tokens" 'api[_-]?key|secret[_-]?key|sk-[a-zA-Z0-9]{10,}'
 
@@ -58,6 +60,12 @@ for dir in "$TEMPLATES"/*/; do
     FAIL=1
     continue
   fi
+  for required in install.command Install.bat install.py "docs/install-guide.html"; do
+    if [[ ! -f "$dir/$required" ]]; then
+      red "FAIL: $id missing $required (run ./scripts/generate-installers.sh)"
+      FAIL=1
+    fi
+  done
 
   if ! python3 - "$id" "$manifest" <<'PY'
 import json, re, sys

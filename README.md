@@ -9,16 +9,19 @@ Free OBS overlays and scene packs from [TonkaToyXL](https://github.com/TonkaToyX
 | Template | What it is | Download | OBS |
 |----------|------------|----------|-----|
 <!-- DOWNLOADS:START -->
-| **Holographic Voice-Reactive Orb** | Browser source overlay — glowing orb that pulses with your mic via obs-websocket. | [Download `holographic-orb-v1.0.0.zip`](./dist/holographic-orb-v1.0.0.zip) (4 KB) | 30.0 |
+| **Holographic Voice-Reactive Orb** | Neutral cosmic orb overlay — mic-reactive, fully customizable. Double-click install. | [Download `holographic-orb-v1.2.0.zip`](./dist/holographic-orb-v1.2.0.zip) (11 KB) | 30.0 |
 <!-- DOWNLOADS:END -->
 
-Each zip includes its own `README.md` with install steps.
+Each zip includes:
+
+- **Double-click install** — `install.command` (Mac) or `Install.bat` (Windows)
+- **README** + **slide walkthrough** (`docs/install-guide.html`)
 
 ## Quick install (any template)
 
-1. Click **Download** above
-2. Unzip anywhere on your computer
-3. Open the folder's `README.md` and follow the steps
+1. Click **Download** above and unzip
+2. **Double-click** `install.command` (Mac) or `Install.bat` (Windows)
+3. Follow the install guide that opens in your browser
 
 ## Requirements
 

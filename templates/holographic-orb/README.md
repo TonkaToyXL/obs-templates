@@ -1,29 +1,39 @@
 # Holographic Voice-Reactive Orb
 
-Free OBS browser overlay. The orb glows and pulses when you talk.
+Free OBS browser overlay — **no channel branding on stream**. Cosmic glow + mic-reactive pulse. Make it yours via `CONFIG` in `overlays/orb.html`.
 
-**Requires:** OBS 30+, [obs-websocket](https://github.com/obsproject/obs-websocket) enabled (built into OBS 28+).
+Downloaded from [TonkaToyXL/obs-templates](https://github.com/TonkaToyXL/obs-templates).
 
-## Install (2 minutes)
+## Install (double-click)
 
-1. **Unzip** this folder anywhere permanent (e.g. `Documents/OBS-Templates/holographic-orb/`).
-2. Open **OBS** → **Settings** → **WebSocket** → enable server (default port `4455`). Set a password if you want — then edit `CONFIG.wsPassword` in `overlays/orb.html`.
-3. **Sources** → **+** → **Browser** → name it `Holographic Orb`.
-4. Check **Local file**, browse to `overlays/orb.html`.
-5. Set size to **400×400** (or scale to taste). Position bottom-right or wherever you like.
-6. **Optional:** replace `assets/avatar.png` with your channel logo (1024×1024 PNG with transparency works best).
-7. **Optional:** set `CONFIG.micInputName` in `overlays/orb.html` to your exact mic name (OBS → Audio Mixer → gear icon → name). Leave blank to auto-pick the first audio input.
+| Platform | File |
+|----------|------|
+| **Mac** | `install.command` |
+| **Windows** | `Install.bat` |
 
-## Mic not reacting?
+Files install to `Documents/OBS-Templates/holographic-orb/`. A walkthrough opens in your browser.
 
-1. Confirm WebSocket is on in OBS Settings.
-2. Refresh the browser source (right-click → **Refresh cache of current page**).
-3. Set `CONFIG.debug = true` in `orb.html`, refresh again — status text shows connection + mic level.
+OBS: **Sources → + → Browser** → **Local file** → `overlays/orb.html`.
 
-## Customize
+## Customize (your brand)
 
 Edit the `CONFIG` block at the top of `overlays/orb.html`:
 
-- `accentCyan` / `accentViolet` — orb colors
-- `micInputName` — your mic's OBS input name
-- `wsPort` / `wsPassword` — WebSocket connection
+| Setting | What it does |
+|---------|----------------|
+| `logoFile` | Path to your logo (`../assets/your-logo.png`) |
+| `showLogo` | `false` = pure cosmic orb, no center image |
+| `accentWarm` / `accentCyan` / `accentViolet` | Orb colors |
+| `micInputName` | Your mic name in OBS (blank = auto-detect) |
+| `wsPassword` | Only if you set a WebSocket password in OBS |
+
+Replace `assets/avatar.svg` with your own PNG/SVG, or set `showLogo: false`.
+
+## Requirements
+
+- OBS Studio 30+
+- WebSocket: **OBS → Settings → WebSocket**
+
+## Video walkthrough
+
+_Coming soon._

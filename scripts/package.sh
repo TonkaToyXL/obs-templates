@@ -35,6 +35,8 @@ package_one() {
   mkdir -p "$DIST"
   rm -f "$out"
 
+  "$ROOT/scripts/generate-installers.sh" >/dev/null
+
   # Zip contents at archive root (not nested in templates/id/)
   (cd "$dir" && zip -qr "$out" . -x "*.DS_Store")
 

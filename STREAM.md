@@ -20,7 +20,15 @@ cd ~/Projects/00_ACTIVE/github-public-publish/obs-templates
 ./scripts/ship.sh "Add my-pack-name template"
 ```
 
-That's it. Viewers refresh the README and click Download.
+Viewers: unzip → double-click `install.command` (Mac) or `Install.bat` (Win).
+
+## Full scene vs overlay
+
+```bash
+./scripts/new-template.sh my-scenes "My Scenes" scene-collection
+# put exported JSON in templates/my-scenes/scene/
+# use {{INSTALL_DIR}}/assets/... paths in the JSON
+```
 
 ---
 
