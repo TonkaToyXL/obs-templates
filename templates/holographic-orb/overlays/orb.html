@@ -1,0 +1,275 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Holographic Orb</title>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    html, body {
+      width: 100%;
+      height: 100%;
+      overflow: hidden;
+      background: transparent;
+    }
+    .stage {
+      width: 100%;
+      height: 100%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      --level: 0;
+      --glow: 40px;
+      --orb-scale: 1;
+      --core-opacity: 0.28;
+      --core-scale: 0.95;
+    }
+    .orb {
+      position: relative;
+      width: 78%;
+      height: 78%;
+      transform: scale(var(--orb-scale));
+      transition: transform 0.05s linear;
+    }
+    .glow {
+      position: absolute;
+      inset: -15%;
+      border-radius: 50%;
+      background: radial-gradient(
+        circle,
+        var(--cyan) 0%,
+        var(--violet) 45%,
+        transparent 70%
+      );
+      filter: blur(var(--glow));
+      opacity: calc(0.35 + var(--level) * 0.55);
+      animation: breathe 4s ease-in-out infinite;
+    }
+    .shell {
+      position: absolute;
+      inset: 0;
+      border-radius: 50%;
+      background: radial-gradient(
+        circle at 35% 30%,
+        rgba(255, 255, 255, 0.35) 0%,
+        var(--cyan) 25%,
+        var(--violet) 60%,
+        rgba(0, 0, 0, 0.4) 100%
+      );
+      box-shadow:
+        inset 0 0 30px rgba(255, 255, 255, 0.2),
+        0 0 calc(20px + var(--level) * 40px) var(--cyan);
+    }
+    .ring {
+      position: absolute;
+      inset: -8%;
+      border-radius: 50%;
+      border: 2px solid rgba(255, 255, 255, 0.25);
+      animation: spin 12s linear infinite;
+      transform: scale(calc(1 + var(--level) * 0.04));
+    }
+    .ring:nth-child(2) {
+      inset: -14%;
+      animation-duration: 18s;
+      animation-direction: reverse;
+      border-color: rgba(255, 255, 255, 0.12);
+    }
+    .core {
+      position: absolute;
+      inset: 22%;
+      border-radius: 50%;
+      background: url("../assets/avatar.svg") center / cover no-repeat;
+      opacity: var(--core-opacity);
+      transform: scale(var(--core-scale));
+      filter: drop-shadow(0 0 8px var(--cyan));
+      transition: opacity 0.08s, transform 0.08s;
+    }
+    .debug {
+      position: absolute;
+      bottom: 4px;
+      left: 4px;
+      font: 10px/1.3 monospace;
+      color: rgba(255, 255, 255, 0.7);
+      text-shadow: 0 1px 2px #000;
+      pointer-events: none;
+      white-space: pre;
+      display: none;
+    }
+    .debug.on { display: block; }
+    @keyframes breathe {
+      0%, 100% { transform: scale(1); opacity: calc(0.3 + var(--level) * 0.5); }
+      50% { transform: scale(1.03); opacity: calc(0.38 + var(--level) * 0.5); }
+    }
+    @keyframes spin {
+      from { transform: rotate(0deg) scale(calc(1 + var(--level) * 0.04)); }
+      to { transform: rotate(360deg) scale(calc(1 + var(--level) * 0.04)); }
+    }
+  </style>
+</head>
+<body>
+  <div class="stage" id="stage">
+    <div class="orb">
+      <div class="glow"></div>
+      <div class="ring"></div>
+      <div class="ring"></div>
+      <div class="shell"></div>
+      <div class="core"></div>
+    </div>
+    <div class="debug" id="debug"></div>
+  </div>
+  <script>
+    const CONFIG = {
+      micInputName: "",
+      wsHost: "127.0.0.1",
+      wsPort: 4455,
+      wsPassword: "",
+      accentCyan: "#3ee8ff",
+      accentViolet: "#a855f7",
+      smoothUp: 0.18,
+      smoothDown: 0.08,
+      idleThreshold: 0.06,
+      debug: false,
+    };
+
+    const stage = document.getElementById("stage");
+    const debugEl = document.getElementById("debug");
+    stage.style.setProperty("--cyan", CONFIG.accentCyan);
+    stage.style.setProperty("--violet", CONFIG.accentViolet);
+
+    let level = 0;
+    let targetLevel = 0;
+    let rafId = null;
+    let status = "connecting…";
+
+    function setDebug(msg) {
+      status = msg;
+      if (CONFIG.debug) {
+        debugEl.classList.add("on");
+        debugEl.textContent = msg;
+      } else {
+        debugEl.classList.remove("on");
+      }
+    }
+
+    function applyLevel() {
+      const diff = targetLevel - level;
+      const rate = diff > 0 ? CONFIG.smoothUp : CONFIG.smoothDown;
+      level += diff * rate;
+      if (Math.abs(diff) < 0.001) level = targetLevel;
+
+      const active = level > CONFIG.idleThreshold ? level : 0;
+      stage.style.setProperty("--level", active.toFixed(3));
+      stage.style.setProperty("--glow", `${40 + active * 70}px`);
+      stage.style.setProperty("--orb-scale", (1 + active * 0.06).toFixed(3));
+      stage.style.setProperty("--core-opacity", (0.28 + active * 0.37).toFixed(3));
+      stage.style.setProperty("--core-scale", (0.95 + active * 0.08).toFixed(3));
+
+      if (CONFIG.debug) {
+        debugEl.textContent = `${status}\nlevel: ${active.toFixed(2)}`;
+      }
+      rafId = requestAnimationFrame(applyLevel);
+    }
+
+    async function sha256(text) {
+      const buf = await crypto.subtle.digest("SHA-256", new TextEncoder().encode(text));
+      return Array.from(new Uint8Array(buf)).map((b) => b.toString(16).padStart(2, "0")).join("");
+    }
+
+    function pickMicInput(inputs) {
+      if (CONFIG.micInputName) {
+        const match = inputs.find((i) => i.inputName === CONFIG.micInputName);
+        if (match) return match;
+      }
+      return inputs.find((i) => i.inputKind === "audio_input") || inputs[0];
+    }
+
+    async function connectObs() {
+      const url = `ws://${CONFIG.wsHost}:${CONFIG.wsPort}`;
+      const ws = new WebSocket(url);
+      let identified = false;
+      let micInputName = CONFIG.micInputName;
+
+      ws.addEventListener("open", () => setDebug("ws open"));
+
+      ws.addEventListener("message", async (ev) => {
+        const msg = JSON.parse(ev.data);
+
+        if (msg.op === 0) {
+          const { authentication, rpcVersion } = msg.d;
+          const payload = {
+            op: 1,
+            d: {
+              rpcVersion,
+              eventSubscriptions: 65536,
+            },
+          };
+          if (authentication) {
+            const secret = await sha256(CONFIG.wsPassword + authentication.salt);
+            payload.d.authentication = await sha256(secret + authentication.challenge);
+          }
+          ws.send(JSON.stringify(payload));
+        }
+
+        if (msg.op === 2) {
+          identified = true;
+          setDebug("identified — waiting for mic…");
+
+          if (!micInputName) {
+            const res = await request(ws, "GetInputList", { inputKind: "audio_input" });
+            const picked = pickMicInput(res.inputs || []);
+            if (picked) {
+              micInputName = picked.inputName;
+              setDebug(`mic: ${micInputName}`);
+            } else {
+              setDebug("INPUT MISSING — set CONFIG.micInputName");
+            }
+          }
+        }
+
+        if (msg.op === 5 && msg.d?.eventType === "InputVolumeMeters") {
+          const inputs = msg.d?.eventData?.inputs || [];
+          const entry = inputs.find((i) => i.inputName === micInputName) || inputs[0];
+          if (!entry) return;
+
+          const levels = entry.inputLevelsMul || entry.inputLevels || [];
+          let peak = 0;
+          for (const ch of levels) {
+            const v = Array.isArray(ch) ? Math.max(...ch) : ch;
+            if (v > peak) peak = v;
+          }
+          targetLevel = Math.min(1, peak * 2.5);
+          if (CONFIG.debug && identified) {
+            setDebug(`meter ok — ${micInputName}\nlevel: ${targetLevel.toFixed(2)}`);
+          }
+        }
+      });
+
+      ws.addEventListener("close", () => {
+        setDebug("ws closed — retrying…");
+        setTimeout(connectObs, 2000);
+      });
+
+      ws.addEventListener("error", () => setDebug("ws error"));
+    }
+
+    function request(ws, requestType, requestData = {}) {
+      return new Promise((resolve, reject) => {
+        const requestId = crypto.randomUUID();
+        const handler = (ev) => {
+          const msg = JSON.parse(ev.data);
+          if (msg.op === 7 && msg.d?.requestId === requestId) {
+            ws.removeEventListener("message", handler);
+            if (msg.d.requestStatus?.result) resolve(msg.d.responseData);
+            else reject(new Error(msg.d.requestStatus?.comment || "request failed"));
+          }
+        };
+        ws.addEventListener("message", handler);
+        ws.send(JSON.stringify({ op: 6, d: { requestType, requestId, requestData } }));
+      });
+    }
+
+    rafId = requestAnimationFrame(applyLevel);
+    connectObs();
+  </script>
+</body>
+</html>

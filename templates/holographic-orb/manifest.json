@@ -1,0 +1,9 @@
+{
+  "id": "holographic-orb",
+  "name": "Holographic Voice-Reactive Orb",
+  "version": "1.0.0",
+  "description": "Browser source overlay — glowing orb that pulses with your mic via obs-websocket.",
+  "obsMinVersion": "30.0",
+  "tags": ["browser-source", "overlay", "mic-reactive", "obs-websocket"],
+  "canvas": "any"
+}
