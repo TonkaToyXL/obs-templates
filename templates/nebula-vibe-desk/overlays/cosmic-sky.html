@@ -1,0 +1,165 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<title>Cosmic Sky</title>
+<style>
+  *{margin:0;padding:0;box-sizing:border-box;}
+  html,body{width:2560px;height:1440px;background:transparent;overflow:hidden;}
+  canvas{display:block;width:2560px;height:1440px;}
+</style>
+</head>
+<body>
+<canvas id="c" width="2560" height="1440"></canvas>
+<script>
+(function(){
+  "use strict";
+  var W=2560,H=1440;
+  var cv=document.getElementById("c"), ctx=cv.getContext("2d");
+  var stars=[], shooters=[], nextShot=0;
+  var moon={x:W*0.90,y:H*0.17,r:49};
+
+  function rand(a,b){return a+Math.random()*(b-a);}
+  function clamp(v,lo,hi){return v<lo?lo:v>hi?hi:v;}
+
+  function lockSize(){
+    W=2560; H=1440;
+    cv.width=W; cv.height=H;
+    cv.style.width=W+"px"; cv.style.height=H+"px";
+    document.documentElement.style.width=W+"px";
+    document.documentElement.style.height=H+"px";
+    document.body.style.width=W+"px";
+    document.body.style.height=H+"px";
+    moon.x=W*0.90; moon.y=H*0.17; moon.r=49;
+    stars.length=0; initStars();
+  }
+
+  function initStars(){
+    stars=[];
+    var n=Math.floor((W*H)/4200);
+    for(var i=0;i<n;i++){
+      var big=Math.random()>0.90;
+      stars.push({
+        x:Math.random(), y:Math.random(),
+        r:big?rand(1.5,2.6):rand(0.5,1.5),
+        base:big?rand(0.55,0.95):rand(0.35,0.78),
+        phase:rand(0,Math.PI*2), phase2:rand(0,Math.PI*2),
+        spd:rand(0.0008,0.0024), warm:Math.random()>0.4,
+        depth:rand(0.45,1), sparkle:Math.random()>0.78,
+        glow:big||Math.random()>0.88
+      });
+    }
+    shooters.length=0;
+    nextShot=performance.now()+rand(1200,3500);
+  }
+
+  function starCol(w,a){return w?"rgba(255,236,210,"+a+")":"rgba(210,228,255,"+a+")";}
+
+  function drawNebula(){
+    var cx=W*0.5, cy=H*0.42, span=Math.max(W,H);
+    var ng=ctx.createRadialGradient(cx,cy,0,cx,cy,span*0.85);
+    ng.addColorStop(0,"rgba(18,24,52,0.06)");
+    ng.addColorStop(0.45,"rgba(22,18,48,0.10)");
+    ng.addColorStop(0.75,"rgba(36,20,58,0.14)");
+    ng.addColorStop(1,"rgba(48,24,72,0.18)");
+    ctx.fillStyle=ng;ctx.fillRect(0,0,W,H);
+    var mg=ctx.createRadialGradient(moon.x,moon.y,0,moon.x,moon.y,span*0.42);
+    mg.addColorStop(0,"rgba(255,240,210,0.053)");
+    mg.addColorStop(0.45,"rgba(255,220,180,0.021)");
+    mg.addColorStop(1,"rgba(255,220,180,0)");
+    ctx.fillStyle=mg;ctx.fillRect(0,0,W,H);
+  }
+
+  function drawStar(s,now){
+    var tw=0.55+0.45*Math.sin(now*s.spd+s.phase)+0.15*Math.sin(now*s.spd*2.4+s.phase2);
+    var a=clamp(s.base*s.depth*tw,0.22,1);
+    var x=s.x*W,y=s.y*H,r=s.r*s.depth;
+    if(s.glow){
+      var gr=ctx.createRadialGradient(x,y,0,x,y,r*4.5);
+      gr.addColorStop(0,starCol(s.warm,(a*0.35).toFixed(3)));
+      gr.addColorStop(1,starCol(s.warm,"0"));
+      ctx.fillStyle=gr;ctx.beginPath();ctx.arc(x,y,r*4.5,0,Math.PI*2);ctx.fill();
+    }
+    ctx.beginPath();ctx.arc(x,y,r,0,Math.PI*2);
+    ctx.fillStyle=starCol(s.warm,a.toFixed(3));ctx.fill();
+    if(s.sparkle&&a>0.25){
+      var sp=0.5+0.5*Math.sin(now*0.004+s.phase);
+      if(sp>0.55){
+        var la=(a*0.55*sp).toFixed(3), arm=r*(2.2+s.glow*1.2);
+        ctx.strokeStyle=starCol(s.warm,la);ctx.lineWidth=s.glow?1.1:0.8;
+        ctx.beginPath();ctx.moveTo(x-arm,y);ctx.lineTo(x+arm,y);ctx.moveTo(x,y-arm);ctx.lineTo(x,y+arm);ctx.stroke();
+      }
+    }
+  }
+
+  function drawMoon(now){
+    var x=moon.x,y=moon.y,r=moon.r;
+    var pulse=0.98+0.02*Math.sin(now*0.0008);
+    var outer=r*4.41*pulse;
+    var gr=ctx.createRadialGradient(x,y,r*0.15,x,y,outer);
+    gr.addColorStop(0,"rgba(255,250,230,0.105)");
+    gr.addColorStop(0.35,"rgba(255,240,205,0.053)");
+    gr.addColorStop(0.7,"rgba(255,225,180,0.021)");
+    gr.addColorStop(1,"rgba(255,220,180,0)");
+    ctx.fillStyle=gr;ctx.beginPath();ctx.arc(x,y,outer,0,Math.PI*2);ctx.fill();
+    var mg=ctx.createRadialGradient(x-r*0.2,y-r*0.2,0,x,y,r);
+    mg.addColorStop(0,"rgba(255,255,248,0.36)");
+    mg.addColorStop(0.5,"rgba(255,245,215,0.21)");
+    mg.addColorStop(0.85,"rgba(240,225,190,0.076)");
+    mg.addColorStop(1,"rgba(220,210,190,0)");
+    ctx.fillStyle=mg;ctx.beginPath();ctx.arc(x,y,r,0,Math.PI*2);ctx.fill();
+    ctx.fillStyle="rgba(255,252,245,0.17)";
+    ctx.beginPath();ctx.arc(x-r*0.16,y+r*0.02,r*0.86,0,Math.PI*2);ctx.fill();
+  }
+
+  function spawnShot(){
+    var x=rand(W*0.06,W*0.94), y=rand(H*0.06,H*0.94);
+    var ang=rand(-Math.PI*0.82,Math.PI*0.82);
+    var spd=rand(1.8,3.4);
+    var vx=Math.cos(ang)*spd, vy=Math.sin(ang)*spd;
+    if(Math.abs(vx)<0.9) vx+=rand(0.9,2.2)*(Math.random()>0.5?1:-1);
+    if(vy>-0.4&&vy<0.6) vy+=rand(0.6,2.0);
+    var life=rand(0.7,1.05);
+    shooters.push({x:x,y:y,vx:vx,vy:vy,life:life,max:life,warm:Math.random()>0.35});
+    nextShot=performance.now()+rand(4500,9000);
+  }
+
+  function drawShots(now){
+    if(now>=nextShot&&shooters.length<2) spawnShot();
+    for(var i=shooters.length-1;i>=0;i--){
+      var s=shooters[i]; s.x+=s.vx; s.y+=s.vy; s.life-=0.013;
+      if(s.life<=0||s.x<-120||s.x>W+120||s.y<-120||s.y>H+120){shooters.splice(i,1);continue;}
+      var t=1-s.life/s.max;
+      var a=clamp(0.42*(1-t*0.4),0.12,0.42);
+      var len=48+s.max*36,h=Math.hypot(s.vx,s.vy),nx=s.vx/h,ny=s.vy/h;
+      var tx=s.x-nx*len,ty=s.y-ny*len;
+      ctx.save();
+      ctx.shadowColor=starCol(s.warm,"0.35"); ctx.shadowBlur=5;
+      var g=ctx.createLinearGradient(tx,ty,s.x,s.y);
+      g.addColorStop(0,"rgba(255,255,255,0)");
+      g.addColorStop(0.5,starCol(s.warm,(a*0.35).toFixed(3)));
+      g.addColorStop(1,starCol(s.warm,(a*0.75).toFixed(3)));
+      ctx.strokeStyle=g;ctx.lineWidth=1.5;ctx.lineCap="round";
+      ctx.beginPath();ctx.moveTo(tx,ty);ctx.lineTo(s.x,s.y);ctx.stroke();
+      ctx.restore();
+      ctx.fillStyle=starCol(s.warm,(a*0.55).toFixed(3));
+      ctx.beginPath();ctx.arc(s.x,s.y,1.8,0,Math.PI*2);ctx.fill();
+    }
+  }
+
+  function frame(now){
+    if(!now) now=performance.now();
+    ctx.clearRect(0,0,W,H);
+    drawNebula(); drawMoon(now);
+    for(var i=0;i<stars.length;i++) drawStar(stars[i],now);
+    drawShots(now);
+    requestAnimationFrame(frame);
+  }
+
+  lockSize();
+  spawnShot();
+  requestAnimationFrame(frame);
+})();
+</script>
+</body>
+</html>

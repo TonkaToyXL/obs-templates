@@ -11,7 +11,7 @@ write_mac_launcher() {
   cat > "$dir/install.command" <<'EOF'
 #!/bin/bash
 cd "$(dirname "$0")"
-echo "Installing TonkaToyXL OBS template..."
+echo "Installing Nebula Vibe Desk..."
 if command -v python3 >/dev/null 2>&1; then
   python3 install.py
 else
@@ -29,7 +29,7 @@ write_windows_launcher() {
   cat > "$dir/Install.bat" <<'EOF'
 @echo off
 cd /d "%~dp0"
-echo Installing TonkaToyXL OBS template...
+echo Installing Nebula Vibe Desk...
 where py >nul 2>nul && (py -3 install.py) || (where python >nul 2>nul && (python install.py) || (
   echo Python 3 required. See README.md for manual install.
   pause
@@ -57,14 +57,14 @@ install_type = manifest.get("installType", "overlay")
 steps_overlay = [
     ("Download & unzip", "Get the zip from GitHub. Unzip anywhere.", "one click on the repo"),
     ("Double-click install", "Mac → <code>install.command</code><br>Windows → <code>Install.bat</code>", "installs scene + opens OBS"),
-    ("Pick the scene", "OBS → <strong>Scene Collection</strong> → <strong>holographic-orb</strong> → scene <strong>Voice Orb</strong>.", "one menu pick"),
+    ("Pick the scene", "OBS → <strong>Scene Collection</strong> → your template → scene <strong>Vibe Coding</strong>.", "one menu pick"),
     ("Talk", "Mic reactive orb lights up when you speak. WebSocket is enabled locally for you.", "127.0.0.1 only — safe"),
 ]
 steps_scene = [
     ("Download & unzip", "Get the zip from GitHub.", "free · no account"),
     ("Double-click install", "Mac → <code>install.command</code> · Windows → <code>Install.bat</code>", "installs scene + opens OBS"),
     ("Pick the scene", f"OBS → <strong>Scene Collection</strong> → <strong>{manifest['id']}</strong> → talk into your mic.", "orb reacts instantly"),
-    ("Customize", "Edit <code>CONFIG</code> in <code>overlays/</code> for your logo and colors.", "optional"),
+    ("Customize your brand", "Replace <code>assets/logo.png</code> and edit <code>branding.user.json</code> (copy from <code>branding.user.example.json</code>). Re-run install to refresh the brand bar.", "optional"),
 ]
 steps = steps_scene if install_type == "scene-collection" else steps_overlay
 

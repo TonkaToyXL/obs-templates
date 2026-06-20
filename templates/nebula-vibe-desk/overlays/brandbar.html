@@ -1,0 +1,83 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<title>Stream Brand Bar</title>
+<style>
+  @font-face {
+    font-family: "Syne";
+    src: url("../fonts/Syne-Variable.ttf") format("truetype");
+    font-weight: 600 800;
+    font-style: normal;
+  }
+  @font-face {
+    font-family: "JetBrains Mono";
+    src: url("../fonts/JetBrainsMono-Variable.ttf") format("truetype");
+    font-weight: 400 600;
+    font-style: normal;
+  }
+  :root { --cyan: #00abfd; --violet: #7c4dff; --panel: rgba(5, 8, 13, 0.78); }
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  html, body { width: 100%; height: 100%; background: transparent; overflow: hidden; -webkit-font-smoothing: antialiased; }
+  .bar {
+    display: inline-flex; align-items: center; gap: 16px;
+    padding: 11px 20px 11px 16px;
+    background: var(--panel);
+    backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px);
+    border: 1px solid rgba(232,244,255,0.07);
+    border-left: 3px solid var(--cyan);
+    box-shadow: 0 10px 32px rgba(0,0,0,0.38), inset 0 1px 0 rgba(255,255,255,0.05);
+    position: relative;
+  }
+  .bar::after {
+    content: ""; position: absolute; left: 0; right: 0; bottom: 0; height: 2px;
+    background: linear-gradient(90deg, var(--cyan), var(--violet), transparent); opacity: 0.9;
+  }
+  .wordmark {
+    font-family: "Syne", sans-serif; font-size: 24px; font-weight: 800;
+    letter-spacing: -0.4px; line-height: 1;
+    background: linear-gradient(105deg, #34c0ff 0%, var(--cyan) 42%, var(--violet) 100%);
+    -webkit-background-clip: text; background-clip: text; color: transparent;
+    filter: drop-shadow(0 0 10px rgba(0,171,253,0.22));
+  }
+  .meta {
+    display: flex; align-items: center; gap: 10px;
+    font-family: "JetBrains Mono", ui-monospace, monospace;
+    font-size: 10px; font-weight: 500; letter-spacing: 0.14em;
+    text-transform: uppercase; color: rgba(232,244,255,0.58);
+  }
+  .pill { display: inline-flex; align-items: center; gap: 7px; padding: 4px 10px; border-radius: 999px; font-weight: 600; }
+  .pill.live { background: rgba(0,171,253,0.12); border: 1px solid rgba(0,171,253,0.35); color: #34c0ff; }
+  .pill.soon { background: rgba(124,77,255,0.14); border: 1px solid rgba(124,77,255,0.38); color: #b794ff; }
+  .dot { width: 7px; height: 7px; border-radius: 50%; flex-shrink: 0; }
+  .dot.live { background: #ff3b5c; box-shadow: 0 0 10px rgba(255,59,92,0.85); animation: pulse 1.8s ease-in-out infinite; }
+  .dot.soon { background: #7c4dff; box-shadow: 0 0 10px rgba(124,77,255,0.85); animation: breathe 2.4s ease-in-out infinite; }
+  @keyframes pulse { 0%,100%{opacity:1;transform:scale(1)} 50%{opacity:.55;transform:scale(.82)} }
+  @keyframes breathe { 0%,100%{opacity:.5;transform:scale(.9)} 50%{opacity:1;transform:scale(1.05)} }
+  .sep { color: rgba(232,244,255,0.18); }
+  .tag { color: rgba(232,244,255,0.44); letter-spacing: 0.1em; }
+</style>
+</head>
+<body>
+  <div class="bar"><span class="wordmark" id="brand">Your Stream</span><span class="meta" id="meta"></span></div>
+<script src="branding.js"></script>
+<script>
+(function(){
+  var params=new URLSearchParams(location.search);
+  var C=window.BRANDING||{};
+  var brand=params.get("brand")||C.brandName||"Your Stream";
+  var tag=params.get("tag")||C.tagLine||"vibe coding";
+  var mode=(params.get("mode")||"live").toLowerCase();
+  var cyan=params.get("cyan")||C.accentCyan||"#00abfd";
+  var violet=params.get("violet")||C.accentViolet||"#7c4dff";
+  document.documentElement.style.setProperty("--cyan", cyan);
+  document.documentElement.style.setProperty("--violet", violet);
+  document.getElementById("brand").textContent=brand;
+  var m=document.getElementById("meta");
+  var esc=function(s){return String(s).replace(/&/g,"&amp;").replace(/</g,"&lt;");};
+  if(mode==="soon") m.innerHTML='<span class="pill soon"><span class="dot soon"></span>Starting Soon</span><span class="sep">//</span><span class="tag">'+esc(tag)+'</span>';
+  else m.innerHTML='<span class="pill live"><span class="dot live"></span>Live</span><span class="sep">//</span><span class="tag">'+esc(tag)+'</span>';
+})();
+</script>
+</body>
+</html>

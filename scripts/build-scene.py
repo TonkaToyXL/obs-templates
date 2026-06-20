@@ -1,76 +1,125 @@
 #!/usr/bin/env python3
-"""Generate minimal OBS scene collection for holographic-orb template."""
+"""Generate OBS scene collection for Nebula Vibe Desk template."""
+from __future__ import annotations
+
 import json
 import uuid
 from pathlib import Path
 
-OUT = Path(__file__).resolve().parents[1] / "templates/holographic-orb/scene/holographic-orb.json"
+ROOT = Path(__file__).resolve().parents[1]
+OUT = ROOT / "templates/nebula-vibe-desk/scene/nebula-vibe-desk.json"
+BRANDING = json.loads((ROOT / "templates/nebula-vibe-desk/branding.json").read_text())
 
-sky_uuid = str(uuid.uuid4())
-orb_uuid = str(uuid.uuid4())
-scene_uuid = str(uuid.uuid4())
-canvas_uuid = str(uuid.uuid4())
+W, H = 2560, 1440
+INSTALL = "{{INSTALL_DIR}}"
 
-def browser_source(name, uid, local_file, w, h):
+# Stable uuids per build (regenerated each run — fine for template)
+def uid():
+    return str(uuid.uuid4())
+
+
+ids = {k: uid() for k in (
+    "cosmic", "orb", "logo", "brand_live", "brand_soon", "privacy", "soon_bg",
+    "scene_vibe", "scene_soon", "canvas_vibe", "canvas_soon",
+)}
+
+COSMIC_CSS = (
+    "body { background-color: rgba(0,0,0,0); margin: 0px auto; "
+    "overflow: hidden; width: 2560px; height: 1440px; }"
+)
+
+
+def browser(name, u, rel_path, w, h, css="", local=True):
+    settings = {
+        "width": w,
+        "height": h,
+        "fps": 30,
+        "shutdown": False,
+        "restart_when_active": True,
+        "css": css,
+        "reroute_audio": False,
+    }
+    if local:
+        settings["is_local_file"] = True
+        settings["local_file"] = f"{INSTALL}/{rel_path}"
+    else:
+        settings["url"] = rel_path
     return {
-        "prev_ver": 536936449,
+        "prev_ver": 503382018,
         "name": name,
-        "uuid": uid,
+        "uuid": u,
         "id": "browser_source",
         "versioned_id": "browser_source",
-        "settings": {
-            "is_local_file": True,
-            "local_file": local_file,
-            "width": w,
-            "height": h,
-            "fps": 30,
-            "shutdown": False,
-            "restart_when_active": True,
-            "css": "body { background-color: rgba(0,0,0,0); margin: 0; overflow: hidden; }",
-            "reroute_audio": False,
-        },
-        "mixers": 0,
-        "sync": 0,
-        "flags": 0,
-        "volume": 1.0,
-        "balance": 0.5,
-        "enabled": True,
-        "muted": False,
-        "push-to-mute": False,
-        "push-to-mute-delay": 0,
-        "push-to-talk": False,
-        "push-to-talk-delay": 0,
+        "settings": settings,
+        "mixers": 0, "sync": 0, "flags": 0, "volume": 1.0, "balance": 0.5,
+        "enabled": True, "muted": False,
+        "push-to-mute": False, "push-to-mute-delay": 0,
+        "push-to-talk": False, "push-to-talk-delay": 0,
         "hotkeys": {},
-        "deinterlace_mode": 0,
-        "deinterlace_field_order": 0,
-        "monitoring_type": 0,
+        "deinterlace_mode": 0, "deinterlace_field_order": 0, "monitoring_type": 0,
         "private_settings": {},
     }
 
-def scene_item(name, source_uuid, x, y, scale=1.0, item_id=1):
+
+def image_logo(name, u, opacity):
+    return {
+        "prev_ver": 503382018,
+        "name": name,
+        "uuid": u,
+        "id": "image_source",
+        "versioned_id": "image_source",
+        "settings": {
+            "file": f"{INSTALL}/assets/logo.png",
+            "unload": False,
+        },
+        "mixers": 0, "sync": 0, "flags": 0, "volume": 1.0, "balance": 0.5,
+        "enabled": True, "muted": False,
+        "push-to-mute": False, "push-to-mute-delay": 0,
+        "push-to-talk": False, "push-to-talk-delay": 0,
+        "hotkeys": {},
+        "deinterlace_mode": 0, "deinterlace_field_order": 0, "monitoring_type": 0,
+        "private_settings": {},
+        "filters": [
+            {
+                "prev_ver": 503382018,
+                "name": "Logo Opacity",
+                "uuid": uid(),
+                "id": "mask_filter",
+                "versioned_id": "mask_filter",
+                "settings": {"opacity": opacity},
+                "mixers": 0, "sync": 0, "flags": 0, "volume": 1.0, "balance": 0.5,
+                "enabled": True, "muted": False,
+                "push-to-mute": False, "push-to-mute-delay": 0,
+                "push-to-talk": False, "push-to-talk-delay": 0,
+                "hotkeys": {},
+                "deinterlace_mode": 0, "deinterlace_field_order": 0, "monitoring_type": 0,
+                "private_settings": {},
+            }
+        ],
+    }
+
+
+def scene_item(name, source_uuid, item_id, pos=(0, 0), scale=(1, 1), bounds=None, bounds_type=0, visible=True):
     return {
         "name": name,
         "source_uuid": source_uuid,
-        "visible": True,
+        "visible": visible,
         "locked": False,
         "rot": 0.0,
-        "scale_ref": {"x": 1920.0, "y": 1080.0},
+        "scale_ref": {"x": float(W), "y": float(H)},
         "align": 5,
-        "bounds_type": 0,
+        "bounds_type": bounds_type,
         "bounds_align": 0,
         "bounds_crop": False,
-        "crop_left": 0,
-        "crop_top": 0,
-        "crop_right": 0,
-        "crop_bottom": 0,
+        "crop_left": 0, "crop_top": 0, "crop_right": 0, "crop_bottom": 0,
         "id": item_id,
         "group_item_backup": False,
-        "pos": {"x": float(x), "y": float(y)},
+        "pos": {"x": float(pos[0]), "y": float(pos[1])},
         "pos_rel": {"x": 0.0, "y": 0.0},
-        "scale": {"x": scale, "y": scale},
-        "scale_rel": {"x": scale, "y": scale},
-        "bounds": {"x": 0.0, "y": 0.0},
-        "bounds_rel": {"x": 0.0, "y": 0.0},
+        "scale": {"x": float(scale[0]), "y": float(scale[1])},
+        "scale_rel": {"x": float(scale[0]), "y": float(scale[1])},
+        "bounds": {"x": float(bounds[0]) if bounds else 0.0, "y": float(bounds[1]) if bounds else 0.0},
+        "bounds_rel": {"x": float(bounds[0]) if bounds else 0.0, "y": float(bounds[1]) if bounds else 0.0},
         "scale_filter": "disable",
         "blend_method": "default",
         "blend_type": "normal",
@@ -79,58 +128,96 @@ def scene_item(name, source_uuid, x, y, scale=1.0, item_id=1):
         "private_settings": {},
     }
 
-collection = {
-    "current_scene": "Voice Orb",
-    "current_program_scene": "Voice Orb",
-    "scene_order": [{"name": "Voice Orb"}],
-    "name": "holographic-orb",
-    "sources": [
-        browser_source("Cosmic Sky", sky_uuid, "{{INSTALL_DIR}}/overlays/cosmic-sky.html", 1920, 1080),
-        browser_source("Holographic Orb", orb_uuid, "{{INSTALL_DIR}}/overlays/orb.html", 400, 400),
-        {
-            "prev_ver": 536936449,
-            "name": "Voice Orb",
-            "uuid": scene_uuid,
-            "id": "scene",
-            "versioned_id": "scene",
-            "settings": {
-                "items": [
-                    scene_item("Cosmic Sky", sky_uuid, 0, 0, 1.0, 1),
-                    scene_item("Holographic Orb", orb_uuid, 1480, 620, 1.0, 2),
-                ],
-                "custom_size": False,
-                "id_counter": 3,
-            },
-            "mixers": 0,
-            "sync": 0,
-            "flags": 0,
-            "volume": 1.0,
-            "balance": 0.5,
-            "enabled": True,
-            "muted": False,
-            "push-to-mute": False,
-            "push-to-mute-delay": 0,
-            "push-to-talk": False,
-            "push-to-talk-delay": 0,
-            "hotkeys": {},
-            "deinterlace_mode": 0,
-            "deinterlace_field_order": 0,
-            "monitoring_type": 0,
-            "canvas_uuid": canvas_uuid,
-            "private_settings": {},
+
+def make_scene(name, u, canvas_u, items):
+    return {
+        "prev_ver": 503382018,
+        "name": name,
+        "uuid": u,
+        "id": "scene",
+        "versioned_id": "scene",
+        "settings": {
+            "items": items,
+            "custom_size": False,
+            "id_counter": len(items) + 1,
         },
+        "mixers": 0, "sync": 0, "flags": 0, "volume": 1.0, "balance": 0.5,
+        "enabled": True, "muted": False,
+        "push-to-mute": False, "push-to-mute-delay": 0,
+        "push-to-talk": False, "push-to-talk-delay": 0,
+        "hotkeys": {},
+        "deinterlace_mode": 0, "deinterlace_field_order": 0, "monitoring_type": 0,
+        "canvas_uuid": canvas_u,
+        "private_settings": {},
+    }
+
+
+display_id = uid()
+
+vibe_items = [
+    scene_item("Display Capture", display_id, 1, (0, 0), (1, 1), (W, H), bounds_type=2),
+    scene_item("Cosmic Sky", ids["cosmic"], 2, (0, 0), (1, 1), (W, H), bounds_type=2),
+    scene_item("Privacy Mask", ids["privacy"], 3, (0, 0), (1, 1), visible=False),
+    scene_item("Stream Logo", ids["logo"], 4, (48, 48), (0.33, 0.33)),
+    scene_item("Brand Bar (Live)", ids["brand_live"], 5, (0, 1305), (0.926, 0.926)),
+    scene_item("Holographic Orb", ids["orb"], 6, (2163, 1043), (0.9925, 0.9925)),
+]
+
+soon_items = [
+    scene_item("Display Capture", display_id, 1, (0, 0), (1, 1), (W, H), bounds_type=2),
+    scene_item("Soon Backdrop", ids["soon_bg"], 2, (0, 0), (1, 1), (W, H), bounds_type=2),
+    scene_item("Stream Logo", ids["logo"], 3, (48, 48), (0.33, 0.33)),
+    scene_item("Holographic Orb", ids["orb"], 4, (2163, 1043), (0.9925, 0.9925)),
+    scene_item("Brand Bar (Soon)", ids["brand_soon"], 5, (0, 1305), (0.926, 0.926)),
+]
+
+display_src = {
+    "prev_ver": 503382018,
+    "name": "Display Capture",
+    "uuid": display_id,
+    "id": "display_capture",
+    "versioned_id": "display_capture",
+    "settings": {"capture_cursor": True},
+    "mixers": 0, "sync": 0, "flags": 0, "volume": 1.0, "balance": 0.5,
+    "enabled": True, "muted": False,
+    "push-to-mute": False, "push-to-mute-delay": 0,
+    "push-to-talk": False, "push-to-talk-delay": 0,
+    "hotkeys": {},
+    "deinterlace_mode": 0, "deinterlace_field_order": 0, "monitoring_type": 0,
+    "private_settings": {},
+}
+
+collection = {
+    "current_scene": "Vibe Coding",
+    "current_program_scene": "Vibe Coding",
+    "scene_order": [{"name": "Vibe Coding"}, {"name": "Starting Soon"}],
+    "name": "Nebula Vibe Desk",
+    "sources": [
+        display_src,
+        browser("Cosmic Sky", ids["cosmic"], "overlays/cosmic-sky.html", W, H, COSMIC_CSS),
+        browser("Privacy Mask", ids["privacy"], "overlays/privacy-blur.html", W, H),
+        image_logo("Stream Logo", ids["logo"], BRANDING.get("logoOpacity", 0.52)),
+        browser("Brand Bar (Live)", ids["brand_live"], "overlays/brandbar.html?mode=live", 720, 90),
+        browser("Holographic Orb", ids["orb"], "overlays/orb.html", 400, 400),
+        browser("Soon Backdrop", ids["soon_bg"], "overlays/soon-backdrop.html", W, H),
+        browser("Brand Bar (Soon)", ids["brand_soon"], "overlays/brandbar.html?mode=soon", 720, 90),
+        make_scene("Vibe Coding", ids["scene_vibe"], ids["canvas_vibe"], vibe_items),
+        make_scene("Starting Soon", ids["scene_soon"], ids["canvas_soon"], soon_items),
     ],
     "groups": [],
     "quick_transitions": [],
     "transitions": [],
     "saved_projectors": [],
-    "canvases": [{"info": {"name": "", "uuid": canvas_uuid, "private": False, "flags": 0}}],
+    "canvases": [
+        {"info": {"name": "", "uuid": ids["canvas_vibe"], "private": False, "flags": 0}},
+        {"info": {"name": "", "uuid": ids["canvas_soon"], "private": False, "flags": 0}},
+    ],
     "current_transition": "Fade",
     "transition_duration": 300,
-    "resolution": {"x": 1920, "y": 1080},
+    "resolution": {"x": W, "y": H},
     "version": 2,
 }
 
 OUT.parent.mkdir(parents=True, exist_ok=True)
-OUT.write_text(json.dumps(collection, indent=2), encoding="utf-8")
+OUT.write_text(json.dumps(collection, indent=4), encoding="utf-8")
 print(f"wrote {OUT}")

@@ -1,1 +1,4 @@
 .DS_Store
+branding.user.json
+scripts/install-local-default.py
+.claude/

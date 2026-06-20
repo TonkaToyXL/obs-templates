@@ -6,7 +6,7 @@ Public, free OBS template files only — overlays, assets, and install docs. No 
 
 ## User-local secrets (never commit these)
 
-- OBS WebSocket passwords — the installer **never reads or copies** your password. If OBS already uses WebSocket auth, set `CONFIG.wsPassword` in the template to match.
+- OBS WebSocket passwords — set `OBS_WS_PASS` in the bridge environment (see `bridge/start-bridge.sh`). The installer never reads or copies your password from OBS config.
 - Mic names, stream keys, and scene paths on a user's machine stay on their machine.
 
 ## What the installer changes (safe)

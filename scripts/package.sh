@@ -9,7 +9,7 @@ DIST="$ROOT/dist"
 usage() {
   echo "Usage: $0 [template-id]"
   echo "  No args — package every template under templates/"
-  echo "  Example: $0 holographic-orb"
+  echo "  Example: $0 nebula-vibe-desk"
   exit 1
 }
 
@@ -35,7 +35,7 @@ package_one() {
   mkdir -p "$DIST"
   rm -f "$out"
 
-  if [[ "$id" == "holographic-orb" ]]; then
+  if [[ "$id" == "nebula-vibe-desk" ]]; then
     python3 "$ROOT/scripts/build-scene.py"
   fi
   "$ROOT/scripts/generate-installers.sh" >/dev/null

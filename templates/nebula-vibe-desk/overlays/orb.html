@@ -1,0 +1,422 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<title>Holographic Orb</title>
+<style>
+  :root {
+    --blue:#0090c8; --blue-bright:#2aa8d8; --magenta:#9a4ab8;
+    --violet:#6a5acd; --pink:#c060c8; --warm:#e8a060; --core:#04060e;
+  }
+  * { margin:0;padding:0;box-sizing:border-box; }
+  html,body { width:100%;height:100%;background:transparent;overflow:hidden; }
+  .stage { position:fixed;inset:0;display:flex;align-items:center;justify-content:center;overflow:hidden; }
+  .wrap { position:relative;width:320px;height:320px;display:flex;align-items:center;justify-content:center; }
+  .fx-canvas { position:absolute;inset:0;width:100%;height:100%;pointer-events:none;z-index:6; }
+  .halo {
+    position:absolute;width:250px;height:250px;border-radius:50%;
+    background:radial-gradient(circle,rgba(232,160,96,0.08) 0%,rgba(42,168,216,0.06) 38%,transparent 68%);
+    filter:blur(10px);will-change:transform,opacity;z-index:0;
+  }
+  .ring-shell { position:absolute;display:flex;align-items:center;justify-content:center;pointer-events:none;z-index:1;will-change:transform,opacity; }
+  .ring-shell.s1 { width:242px;height:242px; }
+  .ring-shell.s2 { width:262px;height:262px; }
+  .ring {
+    width:100%;height:100%;border-radius:50%;border:1px solid rgba(42,168,216,0.16);
+    box-shadow:0 0 6px rgba(42,168,216,0.08), inset 0 0 4px rgba(42,168,216,0.04);
+    animation:spin 26s linear infinite;
+  }
+  .ring-shell.s2 .ring {
+    border-color:rgba(224,64,251,0.22);
+    box-shadow:0 0 10px rgba(224,64,251,0.12), inset 0 0 6px rgba(224,64,251,0.06);
+    animation:spin 36s linear infinite reverse;
+  }
+  @keyframes spin { to{transform:rotate(360deg)} }
+  .orb-body {
+    position:relative;width:214px;height:214px;border-radius:50%;overflow:hidden;
+    will-change:transform,filter; isolation:isolate; z-index:3; background:var(--core);
+    box-shadow:0 0 22px rgba(42,168,216,0.18),0 0 40px rgba(154,74,184,0.12),
+      inset 0 0 0 2px rgba(42,168,216,0.22), inset 0 0 32px rgba(0,0,0,0.95);
+  }
+  .orb-occlude {
+    position:absolute;inset:8%;border-radius:50%;z-index:2;pointer-events:none;
+    background:radial-gradient(circle at 50% 52%,#03050a 0%,#050912 55%,rgba(5,9,18,0.98) 100%);
+    box-shadow:inset 0 0 24px rgba(0,0,0,0.65);
+  }
+  .orb-depth {
+    position:absolute;inset:0;border-radius:50%;z-index:1;
+    background:radial-gradient(circle at 50% 58%,#020408 0%,#040810 42%,#060c18 68%,#0a101e 100%);
+  }
+  .stars { position:absolute;inset:0;width:100%;height:100%;border-radius:50%;z-index:3;pointer-events:none; }
+  .plasma {
+    position:absolute;inset:-6px;border-radius:50%;z-index:4;pointer-events:none;
+    background:conic-gradient(from 0deg,transparent 0%,rgba(52,192,255,0.65) 6%,transparent 14%,
+      rgba(224,64,251,0.55) 26%,transparent 34%,rgba(52,192,255,0.5) 50%,transparent 58%,
+      rgba(192,38,211,0.6) 72%,transparent 80%,rgba(52,192,255,0.45) 92%,transparent 100%);
+    filter:blur(2px);mix-blend-mode:screen;opacity:0.55;
+    -webkit-mask:radial-gradient(circle,transparent 54%,#000 68%,#000 100%);
+    mask:radial-gradient(circle,transparent 54%,#000 68%,#000 100%);
+    animation:plasmaSpin 14s linear infinite;
+  }
+  @keyframes plasmaSpin { to{transform:rotate(360deg)} }
+  .orb-glass {
+    position:absolute;inset:0;border-radius:50%;z-index:5;pointer-events:none;
+    background:radial-gradient(circle at 28% 22%,rgba(255,255,255,0.28) 0%,rgba(255,255,255,0.06) 18%,transparent 42%),
+      radial-gradient(circle at 72% 78%,rgba(224,64,251,0.12) 0%,transparent 36%);
+    mix-blend-mode:screen;
+  }
+  .orb-rim-light {
+    position:absolute;inset:0;border-radius:50%;z-index:5;pointer-events:none;
+    box-shadow:inset 0 -18px 28px rgba(0,171,253,0.12), inset 0 16px 22px rgba(224,64,251,0.08);
+  }
+  .face {
+    position:absolute;top:50%;left:50%;width:148px;height:128px;margin:-66px 0 0 -74px;
+    will-change:transform;z-index:7;
+  }
+  .brow {
+    position:absolute;top:6px;height:8px;width:34px;pointer-events:none;
+    filter:drop-shadow(0 0 5px rgba(52,192,255,0.5));
+  }
+  .brow svg { width:100%;height:100%;overflow:visible; }
+  .brow-path { fill:none;stroke:url(#browGrad);stroke-width:3.2;stroke-linecap:round; }
+  .brow.l { left:18px; }
+  .brow.r { right:18px; }
+  .eye {
+    position:absolute;top:34px;width:20px;height:20px;border-radius:50%;
+    box-shadow:0 0 14px currentColor,0 0 24px currentColor,inset 0 0 5px rgba(255,255,255,0.4);
+    will-change:transform;
+    transform:translate(var(--ex,0px),var(--ey,0px));
+  }
+  .eye.l { left:32px;color:var(--blue-bright);background:radial-gradient(circle at 35% 30%,#fff 0%,var(--blue-bright) 38%,#0088cc 100%); }
+  .eye.r { right:32px;color:var(--pink);background:radial-gradient(circle at 35% 30%,#fff 0%,var(--pink) 38%,#a020b8 100%); }
+  .eye.blink { animation:eyeBlink 120ms ease-in-out forwards; }
+  .eye.wide { transform:translate(var(--ex,0px),var(--ey,0px)) scale(1.18,1.1); }
+  .eye.emphasis { transform:translate(var(--ex,0px),var(--ey,0px)) scale(1.08,1.06); }
+  .face { transition:transform 0.12s ease-out; }
+  .eye.squint { transform:translate(var(--ex,0px),var(--ey,0px)) scaleY(0.55);border-radius:40%; }
+  @keyframes eyeBlink { 0%{transform:translate(var(--ex,0px),var(--ey,0px)) scaleY(1)} 45%{transform:translate(var(--ex,0px),var(--ey,0px)) scaleY(0.05)} 100%{transform:translate(var(--ex,0px),var(--ey,0px)) scaleY(1)} }
+  .mouth-wrap { position:absolute;left:50%;bottom:8px;width:84px;height:48px;margin-left:-42px; }
+  .mouth-wrap svg { width:100%;height:100%;overflow:visible;filter:drop-shadow(0 0 5px rgba(0,171,253,0.55)) drop-shadow(0 0 10px rgba(192,38,211,0.4)); }
+  .mouth-inner { fill:#020408;opacity:0; }
+  .mouth-inner.open { opacity:1; }
+  .lip-upper,.lip-lower { fill:none;stroke:url(#mouthGrad);stroke-width:4;stroke-linecap:round; }
+  .teeth { fill:rgba(210,235,255,0.14);opacity:0; }
+  .teeth.show { opacity:1; }
+  .orb-body.idle { animation:breathe 6s ease-in-out infinite; }
+  @keyframes breathe { 0%,100%{transform:scale(0.992);filter:brightness(0.94) saturate(1.02)} 50%{transform:scale(1.006);filter:brightness(0.97) saturate(1.04)} }
+</style>
+</head>
+<body>
+  <div class="stage">
+    <div class="wrap">
+      <canvas class="fx-canvas" id="fx" width="320" height="320"></canvas>
+      <div class="halo" id="halo"></div>
+      <div class="ring-shell s2" id="ring2"><div class="ring"></div></div>
+      <div class="ring-shell s1" id="ring1"><div class="ring"></div></div>
+      <div class="orb-body idle" id="orb">
+        <div class="orb-depth"></div>
+        <div class="orb-occlude"></div>
+        <canvas class="stars" id="stars" width="214" height="214"></canvas>
+        <div class="plasma" id="plasma"></div>
+        <div class="orb-glass"></div>
+        <div class="orb-rim-light"></div>
+        <div class="face" id="face">
+          <div class="brow l" id="browL"><svg viewBox="0 0 34 8"><defs><linearGradient id="browGrad" x1="0" y1="0" x2="1" y2="0"><stop offset="0%" stop-color="#34c0ff"/><stop offset="100%" stop-color="#e040fb"/></linearGradient></defs><path class="brow-path" id="browPathL" d="M 2 5 Q 17 2 32 5"/></svg></div>
+          <div class="brow r" id="browR"><svg viewBox="0 0 34 8"><path class="brow-path" id="browPathR" d="M 2 5 Q 17 2 32 5"/></svg></div>
+          <div class="eye l" id="eyeL"></div>
+          <div class="eye r" id="eyeR"></div>
+          <div class="mouth-wrap">
+            <svg viewBox="0 0 80 44">
+              <defs><linearGradient id="mouthGrad" x1="0" y1="0" x2="1" y2="0"><stop offset="0%" stop-color="#34c0ff"/><stop offset="100%" stop-color="#e040fb"/></linearGradient></defs>
+              <path class="mouth-inner" id="mouthInner" d="M 20 18 Q 40 18 60 18 Q 40 38 20 18 Z"/>
+              <path class="teeth" id="teeth" d="M 26 19 Q 40 20 54 19 L 54 24 Q 40 25 26 24 Z"/>
+              <path class="lip-upper" id="lipUpper" d="M 18 18 Q 40 14 62 18"/>
+              <path class="lip-lower" id="lipLower" d="M 22 18 Q 40 28 58 18"/>
+            </svg>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+<script>
+(function(){
+  "use strict";
+  var BRIDGE="http://127.0.0.1:8765/level.json", POLL_MS=25;
+  var ATTACK=0.35, RELEASE=0.1, MOUTH_ATTACK=0.78, MOUTH_RELEASE=0.12, IDLE_THRESHOLD=0.01;
+  var orb=document.getElementById("orb"), halo=document.getElementById("halo"), plasma=document.getElementById("plasma");
+  var face=document.getElementById("face"), eyeL=document.getElementById("eyeL"), eyeR=document.getElementById("eyeR");
+  var browPathL=document.getElementById("browPathL"), browPathR=document.getElementById("browPathR");
+  var lipUpper=document.getElementById("lipUpper"), lipLower=document.getElementById("lipLower");
+  var mouthInner=document.getElementById("mouthInner"), teeth=document.getElementById("teeth");
+  var ring1=document.getElementById("ring1"), ring2=document.getElementById("ring2");
+  var starsCanvas=document.getElementById("stars"), fxCanvas=document.getElementById("fx");
+
+  var level=0, mouthLevel=0, burst=0, target=0, prevTarget=0, vel=0;
+  var gazeX=0, gazeY=0, tgtX=0, tgtY=0, nextLook=0, nextBlink=0, wasIdle=true;
+  var expr="idle", starDots=[], bolts=[], patrolIdx=0;
+  var wasSpeaking=false, lastSpeakEnd=0, speakAccent=0, nextAccent=0, microSmile=0, nextDoubleBlink=0;
+  var saccadeX=0, saccadeY=0, nextSaccade=0;
+
+  var PATROL=[
+    {x:0,y:0,expr:"idle",dur:1800},
+    {x:0.08,y:0.02,expr:"soft-smile",dur:1700},
+    {x:-0.18,y:-0.08,expr:"thoughtful",dur:2100},
+    {x:0.05,y:0.28,expr:"listen",dur:2600},
+    {x:-0.42,y:0.18,expr:"listen",dur:2200},
+    {x:-0.82,y:-0.12,expr:"inspect-left",dur:2400},
+    {x:-0.55,y:0.38,expr:"inspect-down",dur:2000},
+    {x:0,y:-0.48,expr:"inspect-up",dur:1800},
+    {x:0.85,y:-0.08,expr:"inspect-right",dur:2600},
+    {x:0.62,y:0.32,expr:"inspect-down",dur:2200},
+    {x:-0.35,y:-0.42,expr:"curious",dur:2000},
+    {x:0.38,y:-0.38,expr:"curious",dur:1900},
+    {x:0,y:0.05,expr:"focus",dur:1400},
+    {x:-0.72,y:0.22,expr:"inspect-left",dur:2100},
+    {x:0.78,y:0.18,expr:"inspect-right",dur:2300}
+  ];
+
+  function rand(a,b){return a+Math.random()*(b-a);}
+  function clamp(v,lo,hi){return v<lo?lo:v>hi?hi:v;}
+
+  function starColor(warm, a){
+    return warm?"rgba(255,220,180,"+a+")":"rgba(190,215,255,"+a+")";
+  }
+
+  function drawOneStar(ctx, x, y, r, alpha, warm, sparkle, now, phase){
+    if(alpha<0.03) return;
+    ctx.beginPath();ctx.arc(x,y,r,0,Math.PI*2);
+    ctx.fillStyle=starColor(warm, alpha.toFixed(3));ctx.fill();
+    if(sparkle&&alpha>0.22){
+      var fl=0.5+0.5*Math.sin(now*0.004+phase);
+      if(fl>0.82){
+        ctx.strokeStyle=starColor(warm,(alpha*0.35).toFixed(3));
+        ctx.lineWidth=0.5;ctx.beginPath();
+        ctx.moveTo(x-r*2.2,y);ctx.lineTo(x+r*2.2,y);
+        ctx.moveTo(x,y-r*2.2);ctx.lineTo(x,y+r*2.2);ctx.stroke();
+      }
+    }
+  }
+
+  function drawStars(now,e){
+    var ctx=starsCanvas.getContext("2d"),w=starsCanvas.width,h=starsCanvas.height,cx=w/2,cy=h/2,r=w*0.48;
+    ctx.clearRect(0,0,w,h);ctx.save();ctx.beginPath();ctx.arc(cx,cy,r,0,Math.PI*2);ctx.clip();
+    var g=ctx.createRadialGradient(cx,cy,0,cx,cy,r);
+    g.addColorStop(0,"#040812");g.addColorStop(0.55,"#060c18");g.addColorStop(1,"#0a1228");
+    ctx.fillStyle=g;ctx.fillRect(0,0,w,h);
+    for(var i=0;i<starDots.length;i++){
+      var s=starDots[i];
+      var tw=0.55+0.45*Math.sin(now*s.spd+s.phase)+0.15*Math.sin(now*s.spd*2.3+s.phase2);
+      var a=clamp(s.r/1.5,0.18,0.65)*tw*(0.9+e*0.06);
+      drawOneStar(ctx,s.x*w,s.y*h,s.r*(0.85+tw*0.15),a,s.warm,s.sparkle,now,s.phase);
+    }
+    ctx.restore();
+  }
+
+  function pickPatrol(now, speaking){
+    if(speaking){
+      tgtX=rand(-0.1,0.1); tgtY=rand(-0.06,0.05);
+      expr=level>0.32?"speaking-loud":(level>0.07?"speaking-soft":"speaking");
+      nextLook=now+rand(700,1200); return;
+    }
+    var p=PATROL[patrolIdx % PATROL.length]; patrolIdx++;
+    tgtX=p.x+rand(-0.06,0.06); tgtY=p.y+rand(-0.05,0.05); expr=p.expr;
+    nextLook=now+p.dur+rand(-200,400);
+  }
+
+  pickPatrol(performance.now(),false); nextBlink=performance.now()+rand(2000,3600);
+  nextDoubleBlink=performance.now()+rand(8000,14000); nextSaccade=performance.now()+rand(1500,2800);
+
+  function doBlink(){
+    eyeL.classList.add("blink"); eyeR.classList.add("blink");
+    setTimeout(function(){eyeL.classList.remove("blink");eyeR.classList.remove("blink");},130);
+  }
+
+  function poll(){
+    fetch(BRIDGE,{cache:"no-store"}).then(function(r){return r.json();}).then(function(d){
+      var t=typeof d.level==="number"?d.level:0;
+      vel=t-prevTarget; prevTarget=target; target=t;
+    }).catch(function(){vel=0;target=0;});
+  }
+
+  function setBrows(lLift,rLift,lCurve,rCurve, pinch){
+    var py=5-lLift*4, ry=5-rLift*4;
+    var lc=2-lCurve*3, rc=2-rCurve*3;
+    browPathL.setAttribute("d","M 2 "+py+" Q 17 "+lc+" 32 "+(py+pinch));
+    browPathR.setAttribute("d","M 2 "+(ry+pinch)+" Q 17 "+rc+" 32 "+ry);
+  }
+
+  function setMouth(open,w,vowel,smile){
+    smile=smile||0;
+    var cx=40, uy=18, half=clamp(8+w*15,8,26), jaw=clamp(open*24,0,24);
+    var sm=smile*5;
+    var roundness=clamp(1-vowel,0,1);
+    half=clamp(half*(0.88+roundness*0.16),8,26);
+    var lx=cx-half, rx=cx+half;
+    var cup=clamp(vowel*3,0,4);
+    lipUpper.setAttribute("d","M "+lx+" "+(uy+cup*0.4-sm*0.3)+" Q "+cx+" "+(uy-1-vowel*2-sm)+" "+rx+" "+(uy+cup*0.4-sm*0.3));
+    if(open>0.04){
+      mouthInner.classList.add("open");
+      teeth.classList.toggle("show",open>0.28);
+      var ih=uy+2+jaw*0.85;
+      lipLower.setAttribute("d","M "+(lx+2)+" "+(uy+1)+" Q "+cx+" "+(uy+3+jaw)+" "+(rx-2)+" "+(uy+1));
+      mouthInner.setAttribute("d","M "+(lx+3)+" "+(uy+2)+" L "+(rx-3)+" "+(uy+2)+" Q "+cx+" "+ih+" "+(lx+3)+" "+(uy+2)+" Z");
+    } else {
+      mouthInner.classList.remove("open"); teeth.classList.remove("show");
+      lipLower.setAttribute("d","M "+(lx+5)+" "+(uy+2)+" Q "+cx+" "+(uy+10-vowel*2+sm*0.8)+" "+(rx-5)+" "+(uy+2));
+    }
+  }
+
+  function applyExpression(name, g, m, speaking){
+    eyeL.classList.remove("wide","squint","emphasis"); eyeR.classList.remove("wide","squint","emphasis");
+    var e=name;
+    if(speaking) e=expr.indexOf("speaking")===0?expr:"speaking";
+    if(g>0.5&&Math.abs(vel)>0.05) e="surprised";
+
+    var wob=Math.sin(performance.now()*0.011)*0.08*m;
+    if(e==="speaking-loud"){
+      setBrows(0.72+m*0.38+wob, 0.62+m*0.42-wob, 0.38+m*0.18, 0.32+m*0.2, -0.22*m);
+      eyeL.classList.add("wide"); eyeR.classList.add("wide");
+    } else if(e==="speaking-soft"){
+      setBrows(0.42+m*0.32+wob, 0.52+m*0.28-wob, 0.18+m*0.14, 0.22+m*0.12, -0.12*m);
+    } else if(e==="speaking"){
+      setBrows(0.55+m*0.38, 0.55+m*0.38, 0.28+m*0.16, 0.28+m*0.16, -0.16*m);
+    } else if(e==="surprised"){
+      setBrows(0.85, 0.85, 0.42, 0.42, -0.4);
+      eyeL.classList.add("wide"); eyeR.classList.add("wide");
+    } else if(e==="soft-smile"){
+      setBrows(0.2, 0.2, -0.12, -0.12, -0.35);
+    } else if(e==="listen"){
+      setBrows(0.12, 0.22, 0.08, 0.18, 0.15);
+      eyeL.classList.add("wide"); eyeR.classList.add("squint");
+    } else if(e==="thoughtful"){
+      setBrows(0.38, 0.12, 0.22, -0.05, 0.45);
+      eyeR.classList.add("squint");
+    } else if(e==="inspect-left"||e==="curious"&&tgtX<0){
+      setBrows(0.35, 0.65, 0.5, 0.1, 0.3);
+    } else if(e==="inspect-right"||e==="curious"&&tgtX>0){
+      setBrows(0.65, 0.35, 0.1, 0.5, 0.3);
+    } else if(e==="inspect-up"){
+      setBrows(0.75, 0.75, -0.3, -0.3, -0.8);
+      eyeL.classList.add("wide"); eyeR.classList.add("wide");
+    } else if(e==="inspect-down"||e==="focus"){
+      setBrows(-0.15, -0.15, 0.6, 0.6, 1.2);
+      eyeL.classList.add("squint"); eyeR.classList.add("squint");
+    } else {
+      setBrows(0.08, 0.08, 0.15, 0.15, 0);
+    }
+    if(speakAccent>0.12){
+      eyeL.classList.add("emphasis"); eyeR.classList.add("emphasis");
+    }
+  }
+
+  function updateFace(now,g,m,speaking){
+    if(speaking){
+      if(g>0.32) expr="speaking-loud";
+      else if(g>0.07) expr="speaking-soft";
+      else expr="speaking";
+      microSmile=clamp(microSmile*0.88+0.18,0,0.55);
+      if(Math.abs(vel)>0.045&&now>=nextAccent){speakAccent=1; nextAccent=now+160;}
+      speakAccent*=0.86;
+    } else {
+      microSmile*=0.9; speakAccent*=0.82;
+      if(wasSpeaking&&now-lastSpeakEnd<500) expr="soft-smile";
+    }
+    if(!speaking&&wasSpeaking) lastSpeakEnd=now;
+    wasSpeaking=speaking;
+
+    if(now>=nextBlink){
+      if(!speaking&&now>=nextDoubleBlink){
+        doBlink(); setTimeout(doBlink,160); nextDoubleBlink=now+rand(14000,24000);
+      } else doBlink();
+      nextBlink=now+rand(2600,6200);
+    }
+    if(now>=nextLook) pickPatrol(now,speaking);
+
+    if(speaking){
+      tgtX=clamp(tgtX*0.88+Math.sin(now*0.009)*0.06,-0.12,0.12);
+      tgtY=clamp(tgtY*0.88+Math.cos(now*0.011)*0.04,-0.08,0.07);
+    }
+
+    if(!speaking&&now>=nextSaccade){
+      saccadeX=rand(-1.4,1.4); saccadeY=rand(-1.0,1.0);
+      nextSaccade=now+rand(2000,4200);
+    }
+    if(speaking) saccadeX*=0.82; else saccadeX*=0.9;
+    if(speaking) saccadeY*=0.82; else saccadeY*=0.9;
+
+    var ease=speaking?0.14:0.05;
+    gazeX+=(tgtX-gazeX)*ease; gazeY+=(tgtY-gazeY)*ease;
+
+    var px=gazeX*26, py=gazeY*20;
+    var nod=speaking?Math.sin(now*0.018)*0.8*g:0;
+    var headTilt=gazeX*9+(speaking?Math.sin(now*0.022)*1.0*g+nod:Math.sin(now*0.0009)*1.0);
+    var headYaw=gazeY*-7+(expr==="listen"?2:0);
+    face.style.transform="translate("+px.toFixed(1)+"px,"+(py+nod*2).toFixed(1)+"px) rotate("+headTilt.toFixed(2)+"deg) skewX("+headYaw.toFixed(1)+"deg) scale("+(1+g*0.022+speakAccent*0.012).toFixed(3)+")";
+
+    var epBaseX=gazeX*6+speakAccent*0.8+saccadeX;
+    var epBaseY=gazeY*5+saccadeY;
+    eyeL.style.setProperty('--ex', (epBaseX-0.6).toFixed(1)+'px');
+    eyeL.style.setProperty('--ey', epBaseY.toFixed(1)+'px');
+    eyeR.style.setProperty('--ex', (epBaseX+0.6).toFixed(1)+'px');
+    eyeR.style.setProperty('--ey', epBaseY.toFixed(1)+'px');
+
+    applyExpression(expr,g,m,speaking);
+
+    var syll=Math.abs(vel)*12;
+    var vowPhase=now*0.034+syll*2.1;
+    var vowel=0.35+Math.sin(vowPhase)*0.22+g*0.32;
+    var open=clamp(m*1.2+syll*0.65+burst*0.28+g*0.12,0,1);
+    var width=clamp(0.35+m*0.7+Math.cos(vowPhase)*0.14+Math.abs(Math.sin(now*0.042+syll*3))*0.2,0.18,1);
+    var smile=speaking?microSmile*(open<0.45?1:0.35):0;
+    setMouth(open,width,vowel,smile);
+  }
+
+  function spawnBolt(e){
+    var cx=160,cy=160,a=rand(0,Math.PI*2),r1=rand(100,122),r2=rand(58,80);
+    bolts.push({x1:cx+Math.cos(a)*r1,y1:cy+Math.sin(a)*r1,x2:cx+Math.cos(a)*r2,y2:cy+Math.sin(a)*r2,life:rand(0.06,0.14),hue:Math.random()>0.55?32:205});
+  }
+  function drawBolt(ctx,b,e){
+    var mx=(b.x1+b.x2)/2,my=(b.y1+b.y2)/2,jx=mx+rand(-14,14)*e,jy=my+rand(-14,14)*e;
+    var alpha=(0.22+e*0.35).toFixed(2);
+    ctx.beginPath();ctx.moveTo(b.x1,b.y1);ctx.quadraticCurveTo(jx,jy,b.x2,b.y2);
+    ctx.strokeStyle="hsla("+b.hue+",55%,"+(58+e*10)+"%, "+alpha+")";ctx.lineWidth=0.6+e*0.8;
+    ctx.shadowBlur=2+e*4;ctx.shadowColor="hsla("+b.hue+",45%,55%,0.35)";ctx.stroke();ctx.shadowBlur=0;
+  }
+  function drawFx(now,e,b){
+    var ctx=fxCanvas.getContext("2d");ctx.clearRect(0,0,320,320);
+    var amp=e+b*0.5;
+    if(amp<0.06){bolts.length=0;return;}
+    ctx.save();ctx.beginPath();ctx.arc(160,160,118,0,Math.PI*2);ctx.rect(0,0,320,320);ctx.clip("evenodd");
+    while(bolts.length<Math.floor(1+amp*4)) spawnBolt(amp);
+    for(var i=bolts.length-1;i>=0;i--){
+      bolts[i].life-=0.018;if(bolts[i].life<=0){bolts.splice(i,1);continue;}
+      drawBolt(ctx,bolts[i],amp);
+    }
+    ctx.restore();
+  }
+
+  function render(now){
+    if(!now) now=performance.now();
+    level+=(target-level)*(target>level?ATTACK:RELEASE);
+    mouthLevel+=(target-mouthLevel)*(target>mouthLevel?MOUTH_ATTACK:MOUTH_RELEASE);
+    burst+=(Math.abs(vel)*4-burst)*0.35;
+    var speaking=level>=IDLE_THRESHOLD||mouthLevel>=IDLE_THRESHOLD;
+    if(speaking!==wasIdle){orb.classList.toggle("idle",!speaking);wasIdle=speaking;}
+    var g=level, m=mouthLevel;
+    var sc=1+g*0.022+burst*0.008;
+    var warm=0.1+g*0.18;
+    orb.style.transform="scale("+sc.toFixed(4)+")";
+    orb.style.filter="brightness("+(0.94+g*0.1).toFixed(3)+") saturate("+(1.05+g*0.15).toFixed(2)+")";
+    orb.style.boxShadow="0 0 "+(24+g*32).toFixed(0)+"px rgba(232,160,96,"+(0.1+warm).toFixed(2)+"),0 0 "+(38+g*40).toFixed(0)+"px rgba(42,168,216,"+(0.14+g*0.2).toFixed(2)+"),0 0 "+(48+g*46).toFixed(0)+"px rgba(154,74,184,"+(0.1+g*0.14).toFixed(2)+"),inset 0 0 0 2px rgba(42,168,216,"+(0.22+g*0.16).toFixed(2)+"),inset 0 0 36px rgba(0,0,0,0.96)";
+    halo.style.transform="scale("+(1+g*0.05).toFixed(3)+")"; halo.style.opacity=(0.35+g*0.28).toFixed(2);
+    plasma.style.opacity=(0.5+g*0.22).toFixed(2);
+    ring1.style.transform="scale("+(1+g*0.02).toFixed(3)+") rotate("+(g*3).toFixed(1)+"deg)"; ring1.style.opacity=(0.22+g*0.2).toFixed(2);
+    ring2.style.transform="scale("+(1+g*0.025).toFixed(3)+") rotate("+(-g*4).toFixed(1)+"deg)"; ring2.style.opacity=(0.18+g*0.16).toFixed(2);
+    drawStars(now,g); drawFx(now,g,burst); updateFace(now,g,m,speaking);
+    requestAnimationFrame(render);
+  }
+  setInterval(poll,POLL_MS); poll(); requestAnimationFrame(render);
+})();
+</script>
+</body>
+</html>

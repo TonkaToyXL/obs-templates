@@ -1,6 +1,6 @@
 #!/bin/bash
 cd "$(dirname "$0")"
-echo "Installing TonkaToyXL OBS template..."
+echo "Installing Nebula Vibe Desk..."
 if command -v python3 >/dev/null 2>&1; then
   python3 install.py
 else

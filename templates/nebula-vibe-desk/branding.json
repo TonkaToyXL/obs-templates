@@ -1,0 +1,10 @@
+{
+  "brandName": "Your Stream",
+  "tagLine": "vibe coding",
+  "logoFile": "assets/logo.png",
+  "logoOpacity": 0.52,
+  "accentCyan": "#00abfd",
+  "accentViolet": "#7c4dff",
+  "bridgePort": 8765,
+  "micInputName": ""
+}

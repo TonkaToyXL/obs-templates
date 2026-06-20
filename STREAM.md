@@ -9,7 +9,7 @@
 ## New template (once per pack)
 
 ```bash
-cd ~/Projects/00_ACTIVE/github-public-publish/obs-templates
+cd path/to/obs-templates
 ./scripts/new-template.sh my-pack-name "My Pack Display Name"
 # drop files into templates/my-pack-name/
 ```

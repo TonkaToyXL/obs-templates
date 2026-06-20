@@ -1,6 +1,6 @@
 # TonkaToyXL OBS Templates
 
-Free OBS overlays and scene packs from [TonkaToyXL](https://github.com/TonkaToyXL) streams. No signup, no paywall — click download, unzip, add to OBS.
+Free OBS overlays and scene packs from [TonkaToyXL](https://github.com/TonkaToyXL) streams. No signup — download, unzip, double-click install.
 
 **Share this link:** `https://github.com/TonkaToyXL/obs-templates`
 
@@ -9,26 +9,40 @@ Free OBS overlays and scene packs from [TonkaToyXL](https://github.com/TonkaToyX
 | Template | What it is | Download | OBS |
 |----------|------------|----------|-----|
 <!-- DOWNLOADS:START -->
-| **Holographic Voice-Reactive Orb** | Plug-and-play cosmic orb scene — double-click install, pick scene, talk. | [Download `holographic-orb-v1.3.0.zip`](./dist/holographic-orb-v1.3.0.zip) (14 KB) | 30.0 |
+| **Nebula Vibe Desk** | Full-screen cosmic sky, shooting stars, moon, and voice-reactive holographic orb — your logo and brand bar are yours to customize. | [Download `nebula-vibe-desk-v2.0.0.zip`](./dist/nebula-vibe-desk-v2.0.0.zip) (200 KB) | 30.0 |
 <!-- DOWNLOADS:END -->
 
 Each zip is **plug-and-play**:
 
-1. Click **Download** → unzip
-2. Double-click **`install.command`** (Mac) or **`Install.bat`** (Windows)
-3. In OBS: **Scene Collection** → pick the template → talk
+1. Download → unzip  
+2. Double-click **`install.command`** (Mac) or **`Install.bat`** (Windows)  
+3. OBS → **Scene Collection** → **nebula-vibe-desk** → **Vibe Coding**
 
-Installer registers the scene, enables local WebSocket (127.0.0.1 only), and opens OBS.
+## What's fixed vs customizable
+
+| Included (core) | You customize |
+|-----------------|---------------|
+| Cosmic sky, moon, shooting stars | `assets/logo.png` |
+| Holographic voice-reactive orb | `branding.user.json` (name, tag, colors) |
+| Vibe Coding + Starting Soon scenes | Mic choice & audio filters in OBS |
 
 ## Requirements
 
-- [OBS Studio](https://obsproject.com/) 30 or newer
-- Voice-reactive templates need **WebSocket** enabled: OBS → **Settings** → **WebSocket**
+- [OBS Studio](https://obsproject.com/) 30+
+- Python 3 + `websockets` for the mic bridge
+- WebSocket enabled: OBS → **Settings** → **WebSocket**
+
+## Develop / package
+
+```bash
+./scripts/build-scene.py
+./scripts/generate-installers.sh
+./scripts/validate.sh
+./scripts/package.sh nebula-vibe-desk
+```
 
 ## License
 
-MIT — use freely on your streams. Credit appreciated but not required.
+MIT — use freely on your streams.
 
-## Security
-
-See [SECURITY.md](./SECURITY.md). Templates connect to OBS on your machine only (`127.0.0.1`). No data is sent to TonkaToyXL or any third party.
+See [SECURITY.md](./SECURITY.md). Templates connect to OBS on your machine only (`127.0.0.1`).
