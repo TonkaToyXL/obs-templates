@@ -55,18 +55,16 @@ name = manifest["name"]
 install_type = manifest.get("installType", "overlay")
 
 steps_overlay = [
-    ("Grab the zip", "Unzip somewhere you'll remember — <code>Documents</code> or <code>Downloads</code> both work.", "free download · no account"),
-    ("Run the installer", "Mac → double-click <code>install.command</code><br>Windows → double-click <code>Install.bat</code>", "copies files + opens this guide"),
-    ("Flip on WebSocket", "OBS → <strong>Settings</strong> → <strong>WebSocket</strong> → enable (port <code>4455</code>).", "needed for mic-reactive overlays"),
-    ("Add the Browser Source", "Sources → <strong>+</strong> → <strong>Browser</strong> → <em>Local file</em> → pick <code>overlays/orb.html</code> from your installed folder.", "400×400 bottom-right is a good start"),
-    ("Talk into your mic", "Orb should light up when you speak. Stuck? Set <code>CONFIG.micInputName</code> in the HTML to match OBS.", "you're live — go stream"),
+    ("Download & unzip", "Get the zip from GitHub. Unzip anywhere.", "one click on the repo"),
+    ("Double-click install", "Mac → <code>install.command</code><br>Windows → <code>Install.bat</code>", "installs scene + opens OBS"),
+    ("Pick the scene", "OBS → <strong>Scene Collection</strong> → <strong>holographic-orb</strong> → scene <strong>Voice Orb</strong>.", "one menu pick"),
+    ("Talk", "Mic reactive orb lights up when you speak. WebSocket is enabled locally for you.", "127.0.0.1 only — safe"),
 ]
 steps_scene = [
-    ("Grab the zip", "Unzip anywhere — installer handles the rest.", "free · built on stream"),
-    ("Run the installer", "Mac → <code>install.command</code> · Windows → <code>Install.bat</code>", "registers scene in OBS"),
-    ("Pick the scene", "OBS → <strong>Scene Collection</strong> → choose the new scene (named after the template).", "check the dropdown"),
-    ("Restart OBS if needed", "Scene not showing? Quit OBS fully, reopen, check the menu again.", "classic OBS move"),
-    ("Make it yours", "Logos live in <code>assets/</code> under <code>Documents/OBS-Templates/</code>.", "edit CONFIG for colors"),
+    ("Download & unzip", "Get the zip from GitHub.", "free · no account"),
+    ("Double-click install", "Mac → <code>install.command</code> · Windows → <code>Install.bat</code>", "installs scene + opens OBS"),
+    ("Pick the scene", f"OBS → <strong>Scene Collection</strong> → <strong>{manifest['id']}</strong> → talk into your mic.", "orb reacts instantly"),
+    ("Customize", "Edit <code>CONFIG</code> in <code>overlays/</code> for your logo and colors.", "optional"),
 ]
 steps = steps_scene if install_type == "scene-collection" else steps_overlay
 

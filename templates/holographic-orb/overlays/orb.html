@@ -120,6 +120,23 @@
       display: none;
     }
     .debug.on { display: block; }
+    .ws-hint {
+      display: none;
+      position: absolute;
+      bottom: 8px;
+      left: 50%;
+      transform: translateX(-50%);
+      font: 11px/1.35 "IBM Plex Mono", ui-monospace, monospace;
+      color: #f4b800;
+      background: rgba(0, 0, 0, 0.72);
+      padding: 6px 10px;
+      border-radius: 6px;
+      border: 1px solid rgba(244, 184, 0, 0.35);
+      text-align: center;
+      max-width: 92%;
+      pointer-events: none;
+    }
+    .ws-hint.on { display: block; }
     @keyframes breathe {
       0%, 100% { transform: scale(1); opacity: calc(0.3 + var(--level) * 0.5); }
       50% { transform: scale(1.03); opacity: calc(0.38 + var(--level) * 0.5); }
@@ -142,6 +159,7 @@
       <div class="core"></div>
     </div>
     <div class="debug" id="debug"></div>
+    <div class="ws-hint" id="wsHint">Enable WebSocket in OBS Settings → then refresh this source</div>
   </div>
   <script>
     const CONFIG = {
@@ -163,6 +181,7 @@
 
     const stage = document.getElementById("stage");
     const debugEl = document.getElementById("debug");
+    const wsHint = document.getElementById("wsHint");
     const coreEl = document.querySelector(".core");
     stage.style.setProperty("--warm", CONFIG.accentWarm);
     stage.style.setProperty("--cyan", CONFIG.accentCyan);
@@ -223,10 +242,16 @@
     async function connectObs() {
       const url = `ws://${CONFIG.wsHost}:${CONFIG.wsPort}`;
       const ws = new WebSocket(url);
-      let identified = false;
-      let micInputName = CONFIG.micInputName;
+    let identified = false;
+    let micInputName = CONFIG.micInputName;
+    let wsHintTimer = setTimeout(() => {
+      if (!identified) wsHint.classList.add("on");
+    }, 4000);
 
-      ws.addEventListener("open", () => setDebug("ws open"));
+    ws.addEventListener("open", () => {
+      setDebug("ws open");
+      wsHint.classList.remove("on");
+    });
 
       ws.addEventListener("message", async (ev) => {
         const msg = JSON.parse(ev.data);
@@ -249,6 +274,8 @@
 
         if (msg.op === 2) {
           identified = true;
+          clearTimeout(wsHintTimer);
+          wsHint.classList.remove("on");
           setDebug("identified — waiting for mic…");
 
           if (!micInputName) {
@@ -283,10 +310,14 @@
 
       ws.addEventListener("close", () => {
         setDebug("ws closed — retrying…");
+        wsHint.classList.add("on");
         setTimeout(connectObs, 2000);
       });
 
-      ws.addEventListener("error", () => setDebug("ws error"));
+      ws.addEventListener("error", () => {
+        setDebug("ws error");
+        wsHint.classList.add("on");
+      });
     }
 
     function request(ws, requestType, requestData = {}) {

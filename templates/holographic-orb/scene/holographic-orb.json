@@ -1,0 +1,241 @@
+{
+  "current_scene": "Voice Orb",
+  "current_program_scene": "Voice Orb",
+  "scene_order": [
+    {
+      "name": "Voice Orb"
+    }
+  ],
+  "name": "holographic-orb",
+  "sources": [
+    {
+      "prev_ver": 536936449,
+      "name": "Cosmic Sky",
+      "uuid": "32b86092-b1f7-4ee6-9a0a-1f3891b69001",
+      "id": "browser_source",
+      "versioned_id": "browser_source",
+      "settings": {
+        "is_local_file": true,
+        "local_file": "{{INSTALL_DIR}}/overlays/cosmic-sky.html",
+        "width": 1920,
+        "height": 1080,
+        "fps": 30,
+        "shutdown": false,
+        "restart_when_active": true,
+        "css": "body { background-color: rgba(0,0,0,0); margin: 0; overflow: hidden; }",
+        "reroute_audio": false
+      },
+      "mixers": 0,
+      "sync": 0,
+      "flags": 0,
+      "volume": 1.0,
+      "balance": 0.5,
+      "enabled": true,
+      "muted": false,
+      "push-to-mute": false,
+      "push-to-mute-delay": 0,
+      "push-to-talk": false,
+      "push-to-talk-delay": 0,
+      "hotkeys": {},
+      "deinterlace_mode": 0,
+      "deinterlace_field_order": 0,
+      "monitoring_type": 0,
+      "private_settings": {}
+    },
+    {
+      "prev_ver": 536936449,
+      "name": "Holographic Orb",
+      "uuid": "4c726d96-2f7c-4546-b080-7e1d0257bca6",
+      "id": "browser_source",
+      "versioned_id": "browser_source",
+      "settings": {
+        "is_local_file": true,
+        "local_file": "{{INSTALL_DIR}}/overlays/orb.html",
+        "width": 400,
+        "height": 400,
+        "fps": 30,
+        "shutdown": false,
+        "restart_when_active": true,
+        "css": "body { background-color: rgba(0,0,0,0); margin: 0; overflow: hidden; }",
+        "reroute_audio": false
+      },
+      "mixers": 0,
+      "sync": 0,
+      "flags": 0,
+      "volume": 1.0,
+      "balance": 0.5,
+      "enabled": true,
+      "muted": false,
+      "push-to-mute": false,
+      "push-to-mute-delay": 0,
+      "push-to-talk": false,
+      "push-to-talk-delay": 0,
+      "hotkeys": {},
+      "deinterlace_mode": 0,
+      "deinterlace_field_order": 0,
+      "monitoring_type": 0,
+      "private_settings": {}
+    },
+    {
+      "prev_ver": 536936449,
+      "name": "Voice Orb",
+      "uuid": "634290e0-4de1-4af5-9185-5937c77c7ffe",
+      "id": "scene",
+      "versioned_id": "scene",
+      "settings": {
+        "items": [
+          {
+            "name": "Cosmic Sky",
+            "source_uuid": "32b86092-b1f7-4ee6-9a0a-1f3891b69001",
+            "visible": true,
+            "locked": false,
+            "rot": 0.0,
+            "scale_ref": {
+              "x": 1920.0,
+              "y": 1080.0
+            },
+            "align": 5,
+            "bounds_type": 0,
+            "bounds_align": 0,
+            "bounds_crop": false,
+            "crop_left": 0,
+            "crop_top": 0,
+            "crop_right": 0,
+            "crop_bottom": 0,
+            "id": 1,
+            "group_item_backup": false,
+            "pos": {
+              "x": 0.0,
+              "y": 0.0
+            },
+            "pos_rel": {
+              "x": 0.0,
+              "y": 0.0
+            },
+            "scale": {
+              "x": 1.0,
+              "y": 1.0
+            },
+            "scale_rel": {
+              "x": 1.0,
+              "y": 1.0
+            },
+            "bounds": {
+              "x": 0.0,
+              "y": 0.0
+            },
+            "bounds_rel": {
+              "x": 0.0,
+              "y": 0.0
+            },
+            "scale_filter": "disable",
+            "blend_method": "default",
+            "blend_type": "normal",
+            "show_transition": {
+              "duration": 0
+            },
+            "hide_transition": {
+              "duration": 0
+            },
+            "private_settings": {}
+          },
+          {
+            "name": "Holographic Orb",
+            "source_uuid": "4c726d96-2f7c-4546-b080-7e1d0257bca6",
+            "visible": true,
+            "locked": false,
+            "rot": 0.0,
+            "scale_ref": {
+              "x": 1920.0,
+              "y": 1080.0
+            },
+            "align": 5,
+            "bounds_type": 0,
+            "bounds_align": 0,
+            "bounds_crop": false,
+            "crop_left": 0,
+            "crop_top": 0,
+            "crop_right": 0,
+            "crop_bottom": 0,
+            "id": 2,
+            "group_item_backup": false,
+            "pos": {
+              "x": 1480.0,
+              "y": 620.0
+            },
+            "pos_rel": {
+              "x": 0.0,
+              "y": 0.0
+            },
+            "scale": {
+              "x": 1.0,
+              "y": 1.0
+            },
+            "scale_rel": {
+              "x": 1.0,
+              "y": 1.0
+            },
+            "bounds": {
+              "x": 0.0,
+              "y": 0.0
+            },
+            "bounds_rel": {
+              "x": 0.0,
+              "y": 0.0
+            },
+            "scale_filter": "disable",
+            "blend_method": "default",
+            "blend_type": "normal",
+            "show_transition": {
+              "duration": 0
+            },
+            "hide_transition": {
+              "duration": 0
+            },
+            "private_settings": {}
+          }
+        ],
+        "custom_size": false,
+        "id_counter": 3
+      },
+      "mixers": 0,
+      "sync": 0,
+      "flags": 0,
+      "volume": 1.0,
+      "balance": 0.5,
+      "enabled": true,
+      "muted": false,
+      "push-to-mute": false,
+      "push-to-mute-delay": 0,
+      "push-to-talk": false,
+      "push-to-talk-delay": 0,
+      "hotkeys": {},
+      "deinterlace_mode": 0,
+      "deinterlace_field_order": 0,
+      "monitoring_type": 0,
+      "canvas_uuid": "692eb54d-7c1f-4af1-9a11-d41bfadafb5a",
+      "private_settings": {}
+    }
+  ],
+  "groups": [],
+  "quick_transitions": [],
+  "transitions": [],
+  "saved_projectors": [],
+  "canvases": [
+    {
+      "info": {
+        "name": "",
+        "uuid": "692eb54d-7c1f-4af1-9a11-d41bfadafb5a",
+        "private": false,
+        "flags": 0
+      }
+    }
+  ],
+  "current_transition": "Fade",
+  "transition_duration": 300,
+  "resolution": {
+    "x": 1920,
+    "y": 1080
+  },
+  "version": 2
+}

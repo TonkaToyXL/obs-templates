@@ -35,6 +35,9 @@ package_one() {
   mkdir -p "$DIST"
   rm -f "$out"
 
+  if [[ "$id" == "holographic-orb" ]]; then
+    python3 "$ROOT/scripts/build-scene.py"
+  fi
   "$ROOT/scripts/generate-installers.sh" >/dev/null
 
   # Zip contents at archive root (not nested in templates/id/)

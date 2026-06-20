@@ -1,39 +1,35 @@
 # Holographic Voice-Reactive Orb
 
-Free OBS browser overlay — **no channel branding on stream**. Cosmic glow + mic-reactive pulse. Make it yours via `CONFIG` in `overlays/orb.html`.
+Plug-and-play OBS scene — cosmic sky + mic-reactive orb. **No branding on your stream.** Customize colors and logo in `CONFIG`.
 
-Downloaded from [TonkaToyXL/obs-templates](https://github.com/TonkaToyXL/obs-templates).
+## Install (2 steps)
 
-## Install (double-click)
+1. **Download** the zip from [GitHub](https://github.com/TonkaToyXL/obs-templates) and unzip
+2. **Double-click** `install.command` (Mac) or `Install.bat` (Windows)
 
-| Platform | File |
-|----------|------|
-| **Mac** | `install.command` |
-| **Windows** | `Install.bat` |
+The installer copies files, registers the scene in OBS, enables local WebSocket, and opens OBS.
 
-Files install to `Documents/OBS-Templates/holographic-orb/`. A walkthrough opens in your browser.
+**In OBS:** Scene Collection → **holographic-orb** → scene **Voice Orb** → talk into your mic.
 
-OBS: **Sources → + → Browser** → **Local file** → `overlays/orb.html`.
+That's it.
 
-## Customize (your brand)
+## Customize
 
-Edit the `CONFIG` block at the top of `overlays/orb.html`:
+Edit `CONFIG` in `overlays/orb.html` — logo, colors, mic name.
 
 | Setting | What it does |
 |---------|----------------|
-| `logoFile` | Path to your logo (`../assets/your-logo.png`) |
-| `showLogo` | `false` = pure cosmic orb, no center image |
+| `showLogo` | `false` = orb only, no center image |
+| `logoFile` | Your PNG/SVG path |
 | `accentWarm` / `accentCyan` / `accentViolet` | Orb colors |
-| `micInputName` | Your mic name in OBS (blank = auto-detect) |
 | `wsPassword` | Only if you set a WebSocket password in OBS |
 
-Replace `assets/avatar.svg` with your own PNG/SVG, or set `showLogo: false`.
+## Security
+
+- Connects to OBS on **your computer only** (`127.0.0.1`)
+- Installer enables local WebSocket for mic levels — no data sent online
+- No stream keys, passwords, or personal info in the download
 
 ## Requirements
 
 - OBS Studio 30+
-- WebSocket: **OBS → Settings → WebSocket**
-
-## Video walkthrough
-
-_Coming soon._

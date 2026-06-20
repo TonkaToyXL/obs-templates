@@ -1,10 +1,10 @@
 {
   "id": "holographic-orb",
   "name": "Holographic Voice-Reactive Orb",
-  "version": "1.2.0",
-  "description": "Neutral cosmic orb overlay — mic-reactive, fully customizable. Double-click install.",
+  "version": "1.3.0",
+  "description": "Plug-and-play cosmic orb scene — double-click install, pick scene, talk.",
   "obsMinVersion": "30.0",
-  "installType": "overlay",
-  "tags": ["browser-source", "overlay", "mic-reactive", "obs-websocket"],
-  "canvas": "any"
+  "installType": "scene-collection",
+  "tags": ["browser-source", "scene-collection", "mic-reactive", "cosmic"],
+  "canvas": "1920x1080"
 }
