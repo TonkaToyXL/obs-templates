@@ -14,7 +14,7 @@
         {
             "prev_ver": 503382018,
             "name": "Display Capture",
-            "uuid": "3c998327-7323-4381-8c0e-cbb15a5dcf8e",
+            "uuid": "73634a88-08d2-4992-b022-0da570fb0483",
             "id": "display_capture",
             "versioned_id": "display_capture",
             "settings": {
@@ -40,7 +40,7 @@
         {
             "prev_ver": 503382018,
             "name": "Cosmic Sky",
-            "uuid": "7e2f8eb9-3a67-412d-87d7-d8bb59bb0abb",
+            "uuid": "354e05ad-d231-4281-ae4f-e5580a4b468d",
             "id": "browser_source",
             "versioned_id": "browser_source",
             "settings": {
@@ -74,7 +74,7 @@
         {
             "prev_ver": 503382018,
             "name": "Privacy Mask",
-            "uuid": "27d1e323-944c-4c14-9470-078049fcaf15",
+            "uuid": "20ae5ccf-8e46-4e9e-abdd-175a481265be",
             "id": "browser_source",
             "versioned_id": "browser_source",
             "settings": {
@@ -108,7 +108,7 @@
         {
             "prev_ver": 503382018,
             "name": "Stream Logo",
-            "uuid": "a1e8b82b-1da6-4116-ba89-6ac738cd2763",
+            "uuid": "dc1f4b0d-0638-403f-ade1-49dac9e0ca3b",
             "id": "image_source",
             "versioned_id": "image_source",
             "settings": {
@@ -135,7 +135,7 @@
                 {
                     "prev_ver": 503382018,
                     "name": "Logo Opacity",
-                    "uuid": "75078b1c-9c41-4667-a426-54b0f16b70a7",
+                    "uuid": "0e36cb1e-66ed-48b8-a501-0da426a5d003",
                     "id": "mask_filter",
                     "versioned_id": "mask_filter",
                     "settings": {
@@ -163,7 +163,7 @@
         {
             "prev_ver": 503382018,
             "name": "Brand Bar (Live)",
-            "uuid": "3815d4e8-059e-4334-80c7-ca925592e47d",
+            "uuid": "debd6949-52bf-43f5-9b0a-a71193b41480",
             "id": "browser_source",
             "versioned_id": "browser_source",
             "settings": {
@@ -197,7 +197,7 @@
         {
             "prev_ver": 503382018,
             "name": "Holographic Orb",
-            "uuid": "4ca9fb31-ae08-4e02-b340-8522b19866c2",
+            "uuid": "48704f1d-195c-4227-99fb-cbe2be49dc93",
             "id": "browser_source",
             "versioned_id": "browser_source",
             "settings": {
@@ -231,7 +231,7 @@
         {
             "prev_ver": 503382018,
             "name": "Soon Backdrop",
-            "uuid": "7f32a669-cb67-4c50-b99d-cc17d485d268",
+            "uuid": "d755a3f3-c4c2-48eb-9d63-04d46ed96902",
             "id": "browser_source",
             "versioned_id": "browser_source",
             "settings": {
@@ -265,7 +265,7 @@
         {
             "prev_ver": 503382018,
             "name": "Brand Bar (Soon)",
-            "uuid": "5471a575-dbf0-42d8-95c3-61314f0d770a",
+            "uuid": "91055561-0a3c-444d-8db9-c99522913c0a",
             "id": "browser_source",
             "versioned_id": "browser_source",
             "settings": {
@@ -299,14 +299,14 @@
         {
             "prev_ver": 503382018,
             "name": "Vibe Coding",
-            "uuid": "920a2101-5731-4588-849e-ce69a7e046f7",
+            "uuid": "d679a7f8-2fb9-4bf1-9a7e-e2576e39bd3f",
             "id": "scene",
             "versioned_id": "scene",
             "settings": {
                 "items": [
                     {
                         "name": "Display Capture",
-                        "source_uuid": "3c998327-7323-4381-8c0e-cbb15a5dcf8e",
+                        "source_uuid": "73634a88-08d2-4992-b022-0da570fb0483",
                         "visible": true,
                         "locked": false,
                         "rot": 0.0,
@@ -361,7 +361,7 @@
                     },
                     {
                         "name": "Cosmic Sky",
-                        "source_uuid": "7e2f8eb9-3a67-412d-87d7-d8bb59bb0abb",
+                        "source_uuid": "354e05ad-d231-4281-ae4f-e5580a4b468d",
                         "visible": true,
                         "locked": false,
                         "rot": 0.0,
@@ -416,7 +416,7 @@
                     },
                     {
                         "name": "Privacy Mask",
-                        "source_uuid": "27d1e323-944c-4c14-9470-078049fcaf15",
+                        "source_uuid": "20ae5ccf-8e46-4e9e-abdd-175a481265be",
                         "visible": false,
                         "locked": false,
                         "rot": 0.0,
@@ -471,7 +471,7 @@
                     },
                     {
                         "name": "Stream Logo",
-                        "source_uuid": "a1e8b82b-1da6-4116-ba89-6ac738cd2763",
+                        "source_uuid": "dc1f4b0d-0638-403f-ade1-49dac9e0ca3b",
                         "visible": true,
                         "locked": false,
                         "rot": 0.0,
@@ -526,7 +526,7 @@
                     },
                     {
                         "name": "Brand Bar (Live)",
-                        "source_uuid": "3815d4e8-059e-4334-80c7-ca925592e47d",
+                        "source_uuid": "debd6949-52bf-43f5-9b0a-a71193b41480",
                         "visible": true,
                         "locked": false,
                         "rot": 0.0,
@@ -581,7 +581,7 @@
                     },
                     {
                         "name": "Holographic Orb",
-                        "source_uuid": "4ca9fb31-ae08-4e02-b340-8522b19866c2",
+                        "source_uuid": "48704f1d-195c-4227-99fb-cbe2be49dc93",
                         "visible": true,
                         "locked": false,
                         "rot": 0.0,
@@ -653,20 +653,20 @@
             "deinterlace_mode": 0,
             "deinterlace_field_order": 0,
             "monitoring_type": 0,
-            "canvas_uuid": "9fc4385a-0901-40c8-a01e-edf312cdb327",
+            "canvas_uuid": "e9d1d497-761f-4ca7-91a5-167be95c6cd1",
             "private_settings": {}
         },
         {
             "prev_ver": 503382018,
             "name": "Starting Soon",
-            "uuid": "d0539bac-5f29-49cc-bf95-66a7d84c5456",
+            "uuid": "f77e7843-cb10-4cd9-846a-b3077ecfcb84",
             "id": "scene",
             "versioned_id": "scene",
             "settings": {
                 "items": [
                     {
                         "name": "Display Capture",
-                        "source_uuid": "3c998327-7323-4381-8c0e-cbb15a5dcf8e",
+                        "source_uuid": "73634a88-08d2-4992-b022-0da570fb0483",
                         "visible": true,
                         "locked": false,
                         "rot": 0.0,
@@ -721,7 +721,7 @@
                     },
                     {
                         "name": "Soon Backdrop",
-                        "source_uuid": "7f32a669-cb67-4c50-b99d-cc17d485d268",
+                        "source_uuid": "d755a3f3-c4c2-48eb-9d63-04d46ed96902",
                         "visible": true,
                         "locked": false,
                         "rot": 0.0,
@@ -776,7 +776,7 @@
                     },
                     {
                         "name": "Stream Logo",
-                        "source_uuid": "a1e8b82b-1da6-4116-ba89-6ac738cd2763",
+                        "source_uuid": "dc1f4b0d-0638-403f-ade1-49dac9e0ca3b",
                         "visible": true,
                         "locked": false,
                         "rot": 0.0,
@@ -831,7 +831,7 @@
                     },
                     {
                         "name": "Holographic Orb",
-                        "source_uuid": "4ca9fb31-ae08-4e02-b340-8522b19866c2",
+                        "source_uuid": "48704f1d-195c-4227-99fb-cbe2be49dc93",
                         "visible": true,
                         "locked": false,
                         "rot": 0.0,
@@ -886,7 +886,7 @@
                     },
                     {
                         "name": "Brand Bar (Soon)",
-                        "source_uuid": "5471a575-dbf0-42d8-95c3-61314f0d770a",
+                        "source_uuid": "91055561-0a3c-444d-8db9-c99522913c0a",
                         "visible": true,
                         "locked": false,
                         "rot": 0.0,
@@ -958,7 +958,7 @@
             "deinterlace_mode": 0,
             "deinterlace_field_order": 0,
             "monitoring_type": 0,
-            "canvas_uuid": "42b0841e-5424-44fd-9931-6139396749e1",
+            "canvas_uuid": "2372c05b-cf78-4fd6-8338-06b8845950f2",
             "private_settings": {}
         }
     ],
@@ -970,7 +970,7 @@
         {
             "info": {
                 "name": "",
-                "uuid": "9fc4385a-0901-40c8-a01e-edf312cdb327",
+                "uuid": "e9d1d497-761f-4ca7-91a5-167be95c6cd1",
                 "private": false,
                 "flags": 0
             }
@@ -978,7 +978,7 @@
         {
             "info": {
                 "name": "",
-                "uuid": "42b0841e-5424-44fd-9931-6139396749e1",
+                "uuid": "2372c05b-cf78-4fd6-8338-06b8845950f2",
                 "private": false,
                 "flags": 0
             }
