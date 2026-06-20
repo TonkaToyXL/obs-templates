@@ -6,9 +6,15 @@ import json
 import uuid
 from pathlib import Path
 
-ROOT = Path(__file__).resolve().parents[1]
-OUT = ROOT / "templates/nebula-vibe-desk/scene/nebula-vibe-desk.json"
-BRANDING = json.loads((ROOT / "templates/nebula-vibe-desk/branding.json").read_text())
+ROOT = Path(__file__).resolve().parent
+REPO_ROOT = ROOT.parent
+if (REPO_ROOT / "templates" / "nebula-vibe-desk").is_dir():
+    TEMPLATE = REPO_ROOT / "templates" / "nebula-vibe-desk"
+else:
+    TEMPLATE = REPO_ROOT
+OUT = TEMPLATE / "scene" / "nebula-vibe-desk.json"
+BRANDING_PATH = TEMPLATE / "branding.json"
+BRANDING = json.loads(BRANDING_PATH.read_text()) if BRANDING_PATH.exists() else {}
 
 W, H = 2560, 1440
 INSTALL = "{{INSTALL_DIR}}"
@@ -160,14 +166,14 @@ vibe_items = [
     scene_item("Privacy Mask", ids["privacy"], 3, (0, 0), (1, 1), visible=False),
     scene_item("Stream Logo", ids["logo"], 4, (48, 48), (0.33, 0.33)),
     scene_item("Brand Bar (Live)", ids["brand_live"], 5, (0, 1305), (0.926, 0.926)),
-    scene_item("Holographic Orb", ids["orb"], 6, (2163, 1043), (0.9925, 0.9925)),
+    scene_item("Holographic Orb", ids["orb"], 6, (0, 0), (1, 1)),
 ]
 
 soon_items = [
     scene_item("Display Capture", display_id, 1, (0, 0), (1, 1), (W, H), bounds_type=2),
     scene_item("Soon Backdrop", ids["soon_bg"], 2, (0, 0), (1, 1), (W, H), bounds_type=2),
     scene_item("Stream Logo", ids["logo"], 3, (48, 48), (0.33, 0.33)),
-    scene_item("Holographic Orb", ids["orb"], 4, (2163, 1043), (0.9925, 0.9925)),
+    scene_item("Holographic Orb", ids["orb"], 4, (0, 0), (1, 1)),
     scene_item("Brand Bar (Soon)", ids["brand_soon"], 5, (0, 1305), (0.926, 0.926)),
 ]
 
@@ -198,7 +204,7 @@ collection = {
         browser("Privacy Mask", ids["privacy"], "overlays/privacy-blur.html", W, H),
         image_logo("Stream Logo", ids["logo"], BRANDING.get("logoOpacity", 0.52)),
         browser("Brand Bar (Live)", ids["brand_live"], "overlays/brandbar.html?mode=live", 720, 90),
-        browser("Holographic Orb", ids["orb"], "overlays/orb.html", 400, 400),
+        browser("Holographic Orb", ids["orb"], "overlays/orb.html", W, H),
         browser("Soon Backdrop", ids["soon_bg"], "overlays/soon-backdrop.html", W, H),
         browser("Brand Bar (Soon)", ids["brand_soon"], "overlays/brandbar.html?mode=soon", 720, 90),
         make_scene("Vibe Coding", ids["scene_vibe"], ids["canvas_vibe"], vibe_items),

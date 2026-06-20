@@ -19,8 +19,8 @@ Installs to `Documents/OBS-Templates/nebula-vibe-desk/`, registers the OBS scene
 | Layer | File | Role |
 |-------|------|------|
 | Cosmic Sky | `overlays/cosmic-sky.html` | Full-screen stars, moon, shooting stars |
-| Holographic Orb | `overlays/orb.html` | Voice-reactive avatar (eyes, brows, mouth) |
-| Privacy Mask | `overlays/privacy-blur.html` | Optional menu-bar blur (off by default) |
+| Holographic Orb | `overlays/orb.html` | Voice-reactive avatar — gentle hover float, subtle gaze, mic-driven mouth |
+| Privacy Mask | `overlays/privacy-blur.html` | Optional top/bottom menu-bar blur (off by default) |
 | Bridge | `bridge/orb-bridge.py` | Serves overlays + `/level.json` mic levels |
 
 ## Customize (your brand)
@@ -38,6 +38,8 @@ Edit **`branding.user.json`** (copy from `branding.user.example.json`):
 Replace **`assets/logo.png`** with your logo (512×512 PNG recommended).
 
 Re-run `install.command` or restart the bridge after edits.
+
+**Holographic Orb (OBS):** browser source must be **2560×1440** at position **0,0** (full canvas). After updating `orb.html`, right-click the source → **Refresh**.
 
 ## Mic bridge
 

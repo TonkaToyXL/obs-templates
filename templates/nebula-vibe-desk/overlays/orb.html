@@ -2,25 +2,29 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8" />
-<title>Holographic Orb</title>
+<title>TonkaToyXL Orb</title>
 <style>
   :root {
     --blue:#0090c8; --blue-bright:#2aa8d8; --magenta:#9a4ab8;
     --violet:#6a5acd; --pink:#c060c8; --warm:#e8a060; --core:#04060e;
   }
   * { margin:0;padding:0;box-sizing:border-box; }
-  html,body { width:100%;height:100%;background:transparent;overflow:hidden; }
-  .stage { position:fixed;inset:0;display:flex;align-items:center;justify-content:center;overflow:hidden; }
-  .wrap { position:relative;width:320px;height:320px;display:flex;align-items:center;justify-content:center; }
+  html,body { width:2560px;height:1440px;background:transparent;overflow:hidden; }
+  .stage { position:relative;width:2560px;height:1440px;overflow:visible; }
+  .wrap {
+    position:absolute;width:378px;height:378px;left:1960px;top:1040px;
+    display:flex;align-items:center;justify-content:center;
+    will-change:left,top,transform;
+  }
   .fx-canvas { position:absolute;inset:0;width:100%;height:100%;pointer-events:none;z-index:6; }
   .halo {
-    position:absolute;width:250px;height:250px;border-radius:50%;
+    position:absolute;width:295px;height:295px;border-radius:50%;
     background:radial-gradient(circle,rgba(232,160,96,0.08) 0%,rgba(42,168,216,0.06) 38%,transparent 68%);
     filter:blur(10px);will-change:transform,opacity;z-index:0;
   }
   .ring-shell { position:absolute;display:flex;align-items:center;justify-content:center;pointer-events:none;z-index:1;will-change:transform,opacity; }
-  .ring-shell.s1 { width:242px;height:242px; }
-  .ring-shell.s2 { width:262px;height:262px; }
+  .ring-shell.s1 { width:286px;height:286px; }
+  .ring-shell.s2 { width:309px;height:309px; }
   .ring {
     width:100%;height:100%;border-radius:50%;border:1px solid rgba(42,168,216,0.16);
     box-shadow:0 0 6px rgba(42,168,216,0.08), inset 0 0 4px rgba(42,168,216,0.04);
@@ -33,7 +37,7 @@
   }
   @keyframes spin { to{transform:rotate(360deg)} }
   .orb-body {
-    position:relative;width:214px;height:214px;border-radius:50%;overflow:hidden;
+    position:relative;width:252px;height:252px;border-radius:50%;overflow:hidden;
     will-change:transform,filter; isolation:isolate; z-index:3; background:var(--core);
     box-shadow:0 0 22px rgba(42,168,216,0.18),0 0 40px rgba(154,74,184,0.12),
       inset 0 0 0 2px rgba(42,168,216,0.22), inset 0 0 32px rgba(0,0,0,0.95);
@@ -92,7 +96,7 @@
   .eye.blink { animation:eyeBlink 120ms ease-in-out forwards; }
   .eye.wide { transform:translate(var(--ex,0px),var(--ey,0px)) scale(1.18,1.1); }
   .eye.emphasis { transform:translate(var(--ex,0px),var(--ey,0px)) scale(1.08,1.06); }
-  .face { transition:transform 0.12s ease-out; }
+  .face { transition:transform 0.2s ease-out; }
   .eye.squint { transform:translate(var(--ex,0px),var(--ey,0px)) scaleY(0.55);border-radius:40%; }
   @keyframes eyeBlink { 0%{transform:translate(var(--ex,0px),var(--ey,0px)) scaleY(1)} 45%{transform:translate(var(--ex,0px),var(--ey,0px)) scaleY(0.05)} 100%{transform:translate(var(--ex,0px),var(--ey,0px)) scaleY(1)} }
   .mouth-wrap { position:absolute;left:50%;bottom:8px;width:84px;height:48px;margin-left:-42px; }
@@ -109,14 +113,14 @@
 <body>
   <div class="stage">
     <div class="wrap">
-      <canvas class="fx-canvas" id="fx" width="320" height="320"></canvas>
+      <canvas class="fx-canvas" id="fx" width="378" height="378"></canvas>
       <div class="halo" id="halo"></div>
       <div class="ring-shell s2" id="ring2"><div class="ring"></div></div>
       <div class="ring-shell s1" id="ring1"><div class="ring"></div></div>
       <div class="orb-body idle" id="orb">
         <div class="orb-depth"></div>
         <div class="orb-occlude"></div>
-        <canvas class="stars" id="stars" width="214" height="214"></canvas>
+        <canvas class="stars" id="stars" width="252" height="252"></canvas>
         <div class="plasma" id="plasma"></div>
         <div class="orb-glass"></div>
         <div class="orb-rim-light"></div>
@@ -143,6 +147,7 @@
   "use strict";
   var BRIDGE="http://127.0.0.1:8765/level.json", POLL_MS=25;
   var ATTACK=0.35, RELEASE=0.1, MOUTH_ATTACK=0.78, MOUTH_RELEASE=0.12, IDLE_THRESHOLD=0.01;
+  var wrap=document.querySelector(".wrap");
   var orb=document.getElementById("orb"), halo=document.getElementById("halo"), plasma=document.getElementById("plasma");
   var face=document.getElementById("face"), eyeL=document.getElementById("eyeL"), eyeR=document.getElementById("eyeR");
   var browPathL=document.getElementById("browPathL"), browPathR=document.getElementById("browPathR");
@@ -152,31 +157,21 @@
   var starsCanvas=document.getElementById("stars"), fxCanvas=document.getElementById("fx");
 
   var level=0, mouthLevel=0, burst=0, target=0, prevTarget=0, vel=0;
-  var gazeX=0, gazeY=0, tgtX=0, tgtY=0, nextLook=0, nextBlink=0, wasIdle=true;
-  var expr="idle", starDots=[], bolts=[], patrolIdx=0;
-  var wasSpeaking=false, lastSpeakEnd=0, speakAccent=0, nextAccent=0, microSmile=0, nextDoubleBlink=0;
-  var saccadeX=0, saccadeY=0, nextSaccade=0;
-
-  var PATROL=[
-    {x:0,y:0,expr:"idle",dur:1800},
-    {x:0.08,y:0.02,expr:"soft-smile",dur:1700},
-    {x:-0.18,y:-0.08,expr:"thoughtful",dur:2100},
-    {x:0.05,y:0.28,expr:"listen",dur:2600},
-    {x:-0.42,y:0.18,expr:"listen",dur:2200},
-    {x:-0.82,y:-0.12,expr:"inspect-left",dur:2400},
-    {x:-0.55,y:0.38,expr:"inspect-down",dur:2000},
-    {x:0,y:-0.48,expr:"inspect-up",dur:1800},
-    {x:0.85,y:-0.08,expr:"inspect-right",dur:2600},
-    {x:0.62,y:0.32,expr:"inspect-down",dur:2200},
-    {x:-0.35,y:-0.42,expr:"curious",dur:2000},
-    {x:0.38,y:-0.38,expr:"curious",dur:1900},
-    {x:0,y:0.05,expr:"focus",dur:1400},
-    {x:-0.72,y:0.22,expr:"inspect-left",dur:2100},
-    {x:0.78,y:0.18,expr:"inspect-right",dur:2300}
-  ];
+  var gazeX=0, gazeY=0, saccX=0, saccY=0, nextSaccade=0;
+  var nextBlink=0, wasIdle=true;
+  var expr="idle", starDots=[], bolts=[];
+  var wasSpeaking=false, speakAccent=0, nextAccent=0, microSmile=0, nextDoubleBlink=0;
 
   function rand(a,b){return a+Math.random()*(b-a);}
   function clamp(v,lo,hi){return v<lo?lo:v>hi?hi:v;}
+
+  for(var si=0;si<88;si++){
+    starDots.push({
+      x:rand(0.08,0.92), y:rand(0.08,0.92), r:rand(0.35,1.45),
+      spd:rand(0.0012,0.0038), phase:rand(0,Math.PI*2), phase2:rand(0,Math.PI*2),
+      warm:Math.random()>0.72, sparkle:Math.random()>0.82
+    });
+  }
 
   function starColor(warm, a){
     return warm?"rgba(255,220,180,"+a+")":"rgba(190,215,255,"+a+")";
@@ -212,19 +207,9 @@
     ctx.restore();
   }
 
-  function pickPatrol(now, speaking){
-    if(speaking){
-      tgtX=rand(-0.1,0.1); tgtY=rand(-0.06,0.05);
-      expr=level>0.32?"speaking-loud":(level>0.07?"speaking-soft":"speaking");
-      nextLook=now+rand(700,1200); return;
-    }
-    var p=PATROL[patrolIdx % PATROL.length]; patrolIdx++;
-    tgtX=p.x+rand(-0.06,0.06); tgtY=p.y+rand(-0.05,0.05); expr=p.expr;
-    nextLook=now+p.dur+rand(-200,400);
-  }
-
-  pickPatrol(performance.now(),false); nextBlink=performance.now()+rand(2000,3600);
-  nextDoubleBlink=performance.now()+rand(8000,14000); nextSaccade=performance.now()+rand(1500,2800);
+  nextBlink=performance.now()+rand(2800,4800);
+  nextDoubleBlink=performance.now()+rand(12000,20000);
+  nextSaccade=performance.now()+rand(3200,5600);
 
   function doBlink(){
     eyeL.classList.add("blink"); eyeR.classList.add("blink");
@@ -291,9 +276,9 @@
     } else if(e==="thoughtful"){
       setBrows(0.38, 0.12, 0.22, -0.05, 0.45);
       eyeR.classList.add("squint");
-    } else if(e==="inspect-left"||e==="curious"&&tgtX<0){
+    } else if(e==="inspect-left"||e==="curious"&&gazeX<0){
       setBrows(0.35, 0.65, 0.5, 0.1, 0.3);
-    } else if(e==="inspect-right"||e==="curious"&&tgtX>0){
+    } else if(e==="inspect-right"||e==="curious"&&gazeX>0){
       setBrows(0.65, 0.35, 0.1, 0.5, 0.3);
     } else if(e==="inspect-up"){
       setBrows(0.75, 0.75, -0.3, -0.3, -0.8);
@@ -318,47 +303,46 @@
       if(Math.abs(vel)>0.045&&now>=nextAccent){speakAccent=1; nextAccent=now+160;}
       speakAccent*=0.86;
     } else {
+      expr="idle";
       microSmile*=0.9; speakAccent*=0.82;
-      if(wasSpeaking&&now-lastSpeakEnd<500) expr="soft-smile";
     }
-    if(!speaking&&wasSpeaking) lastSpeakEnd=now;
     wasSpeaking=speaking;
 
     if(now>=nextBlink){
       if(!speaking&&now>=nextDoubleBlink){
         doBlink(); setTimeout(doBlink,160); nextDoubleBlink=now+rand(14000,24000);
       } else doBlink();
-      nextBlink=now+rand(2600,6200);
+      nextBlink=now+rand(3800,7600);
     }
-    if(now>=nextLook) pickPatrol(now,speaking);
 
-    if(speaking){
-      tgtX=clamp(tgtX*0.88+Math.sin(now*0.009)*0.06,-0.12,0.12);
-      tgtY=clamp(tgtY*0.88+Math.cos(now*0.011)*0.04,-0.08,0.07);
-    }
+    var gt=now*0.00052;
+    var tgtX=Math.sin(gt)*0.11+Math.sin(gt*1.41+0.9)*0.05;
+    var tgtY=Math.cos(gt*0.88)*0.08+Math.cos(gt*1.18+0.4)*0.04;
+    if(speaking){tgtX*=0.35; tgtY*=0.35;}
+    var gazeEase=speaking?0.06:0.022;
+    gazeX+=(tgtX-gazeX)*gazeEase; gazeY+=(tgtY-gazeY)*gazeEase;
 
     if(!speaking&&now>=nextSaccade){
-      saccadeX=rand(-1.4,1.4); saccadeY=rand(-1.0,1.0);
-      nextSaccade=now+rand(2000,4200);
+      saccX=rand(-0.9,0.9); saccY=rand(-0.65,0.65);
+      nextSaccade=now+rand(3800,6800);
     }
-    if(speaking) saccadeX*=0.82; else saccadeX*=0.9;
-    if(speaking) saccadeY*=0.82; else saccadeY*=0.9;
+    saccX*=0.88; saccY*=0.88;
 
-    var ease=speaking?0.14:0.05;
-    gazeX+=(tgtX-gazeX)*ease; gazeY+=(tgtY-gazeY)*ease;
+    var nod=speaking?Math.sin(now*0.018)*0.35*g:0;
+    var px=gazeX*14, py=gazeY*11;
+    var wiggle=Math.sin(now*0.00115)*1.1+Math.sin(now*0.0023+0.7)*0.55;
+    var headTilt=gazeX*5.5+wiggle+(speaking?nod*2.2:0);
+    var headYaw=gazeY*-4;
+    face.style.transform="translate("+px.toFixed(1)+"px,"+(py+nod*1.2).toFixed(1)+"px) rotate("+headTilt.toFixed(2)+"deg) skewX("+headYaw.toFixed(1)+"deg) scale("+(1+g*0.018+speakAccent*0.01).toFixed(3)+")";
 
-    var px=gazeX*26, py=gazeY*20;
-    var nod=speaking?Math.sin(now*0.018)*0.8*g:0;
-    var headTilt=gazeX*9+(speaking?Math.sin(now*0.022)*1.0*g+nod:Math.sin(now*0.0009)*1.0);
-    var headYaw=gazeY*-7+(expr==="listen"?2:0);
-    face.style.transform="translate("+px.toFixed(1)+"px,"+(py+nod*2).toFixed(1)+"px) rotate("+headTilt.toFixed(2)+"deg) skewX("+headYaw.toFixed(1)+"deg) scale("+(1+g*0.022+speakAccent*0.012).toFixed(3)+")";
+    var epX=gazeX*4.2+saccX+speakAccent*0.35;
+    var epY=gazeY*3.4+saccY;
+    eyeL.style.setProperty('--ex', (epX-0.5).toFixed(1)+'px');
+    eyeL.style.setProperty('--ey', epY.toFixed(1)+'px');
+    eyeR.style.setProperty('--ex', (epX+0.5).toFixed(1)+'px');
+    eyeR.style.setProperty('--ey', epY.toFixed(1)+'px');
 
-    var epBaseX=gazeX*6+speakAccent*0.8+saccadeX;
-    var epBaseY=gazeY*5+saccadeY;
-    eyeL.style.setProperty('--ex', (epBaseX-0.6).toFixed(1)+'px');
-    eyeL.style.setProperty('--ey', epBaseY.toFixed(1)+'px');
-    eyeR.style.setProperty('--ex', (epBaseX+0.6).toFixed(1)+'px');
-    eyeR.style.setProperty('--ey', epBaseY.toFixed(1)+'px');
+    if(!speaking&&Math.abs(gazeX)>0.07) expr=Math.abs(gazeY)>0.06?"curious":"idle";
 
     applyExpression(expr,g,m,speaking);
 
@@ -372,7 +356,7 @@
   }
 
   function spawnBolt(e){
-    var cx=160,cy=160,a=rand(0,Math.PI*2),r1=rand(100,122),r2=rand(58,80);
+    var cx=189,cy=189,a=rand(0,Math.PI*2),r1=rand(118,144),r2=rand(68,94);
     bolts.push({x1:cx+Math.cos(a)*r1,y1:cy+Math.sin(a)*r1,x2:cx+Math.cos(a)*r2,y2:cy+Math.sin(a)*r2,life:rand(0.06,0.14),hue:Math.random()>0.55?32:205});
   }
   function drawBolt(ctx,b,e){
@@ -383,10 +367,10 @@
     ctx.shadowBlur=2+e*4;ctx.shadowColor="hsla("+b.hue+",45%,55%,0.35)";ctx.stroke();ctx.shadowBlur=0;
   }
   function drawFx(now,e,b){
-    var ctx=fxCanvas.getContext("2d");ctx.clearRect(0,0,320,320);
+    var ctx=fxCanvas.getContext("2d");ctx.clearRect(0,0,378,378);
     var amp=e+b*0.5;
     if(amp<0.06){bolts.length=0;return;}
-    ctx.save();ctx.beginPath();ctx.arc(160,160,118,0,Math.PI*2);ctx.rect(0,0,320,320);ctx.clip("evenodd");
+    ctx.save();ctx.beginPath();ctx.arc(189,189,139,0,Math.PI*2);ctx.rect(0,0,378,378);ctx.clip("evenodd");
     while(bolts.length<Math.floor(1+amp*4)) spawnBolt(amp);
     for(var i=bolts.length-1;i>=0;i--){
       bolts[i].life-=0.018;if(bolts[i].life<=0){bolts.splice(i,1);continue;}
@@ -412,6 +396,15 @@
     plasma.style.opacity=(0.5+g*0.22).toFixed(2);
     ring1.style.transform="scale("+(1+g*0.02).toFixed(3)+") rotate("+(g*3).toFixed(1)+"deg)"; ring1.style.opacity=(0.22+g*0.2).toFixed(2);
     ring2.style.transform="scale("+(1+g*0.025).toFixed(3)+") rotate("+(-g*4).toFixed(1)+"deg)"; ring2.style.opacity=(0.18+g*0.16).toFixed(2);
+    var floatAmp=speaking?0.92:1;
+    var anchorX=1965, anchorY=1045, roamX=72, roamY=54;
+    var t=now*0.00105;
+    var px=anchorX+Math.sin(t)*roamX*floatAmp;
+    var py=anchorY+(Math.sin(t*1.35+0.8)*roamY+Math.sin(t*2.1)*6)*floatAmp;
+    var ftilt=Math.sin(t*0.85)*1.1*floatAmp;
+    wrap.style.left=px.toFixed(1)+"px";
+    wrap.style.top=py.toFixed(1)+"px";
+    wrap.style.transform="translate(-50%,-50%) rotate("+ftilt.toFixed(2)+"deg)";
     drawStars(now,g); drawFx(now,g,burst); updateFace(now,g,m,speaking);
     requestAnimationFrame(render);
   }
