@@ -1,5 +1,7 @@
 # TonkaToyXL OBS Templates
 
+[![CI](https://github.com/TonkaToyXL/obs-templates/actions/workflows/ci.yml/badge.svg)](https://github.com/TonkaToyXL/obs-templates/actions/workflows/ci.yml)
+
 Free OBS overlays and scene packs from [TonkaToyXL](https://github.com/TonkaToyXL) streams. No signup — download, unzip, double-click install.
 
 **Share this link:** `https://github.com/TonkaToyXL/obs-templates`

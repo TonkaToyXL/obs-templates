@@ -2,3 +2,4 @@
 branding.user.json
 scripts/install-local-default.py
 .claude/
+__pycache__/
