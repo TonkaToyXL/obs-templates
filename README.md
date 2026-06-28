@@ -9,7 +9,7 @@ Free OBS overlays and scene packs from [TonkaToyXL](https://github.com/TonkaToyX
 | Template | What it is | Download | OBS |
 |----------|------------|----------|-----|
 <!-- DOWNLOADS:START -->
-| **Nebula Vibe Desk** | Full-screen cosmic sky, shooting stars, moon, and voice-reactive holographic orb — your logo and brand bar are yours to customize. | [Download `nebula-vibe-desk-v2.0.0.zip`](./dist/nebula-vibe-desk-v2.0.0.zip) (200 KB) | 30.0 |
+| **Nebula Vibe Desk** | Full-screen cosmic sky, shooting stars, moon, and voice-reactive holographic orb with local health and config panels. | [Download `nebula-vibe-desk-v2.1.0.zip`](./dist/nebula-vibe-desk-v2.1.0.zip) (216 KB) | 30.0 |
 <!-- DOWNLOADS:END -->
 
 Each zip is **plug-and-play**:
@@ -23,13 +23,13 @@ Each zip is **plug-and-play**:
 | Included (core) | You customize |
 |-----------------|---------------|
 | Cosmic sky, moon, shooting stars | `assets/logo.png` |
-| Holographic voice-reactive orb | `branding.user.json` (name, tag, colors) |
+| Holographic voice-reactive orb | Local config page or `branding.user.json` |
 | Vibe Coding + Starting Soon scenes | Mic choice & audio filters in OBS |
 
 ## Requirements
 
 - [OBS Studio](https://obsproject.com/) 30+
-- Python 3 + `websockets` for the mic bridge
+- Python 3. The installer creates a local bridge venv for `websockets`
 - WebSocket enabled: OBS → **Settings** → **WebSocket**
 
 ## Develop / package

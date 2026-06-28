@@ -22,10 +22,11 @@ On Mac, installs the runtime to `~/Library/Application Support/OBS-Templates/neb
 | Holographic Orb | `overlays/orb.html` | Voice-reactive avatar — gentle hover float, subtle gaze, mic-driven mouth |
 | Privacy Mask | `overlays/privacy-blur.html` | Optional top/bottom menu-bar blur (off by default) |
 | Bridge | `bridge/orb-bridge.py` | Serves overlays + `/level.json` mic levels |
+| Health + Config | `overlays/health.html`, `overlays/config.html` | Local diagnostics and orb tuning |
 
 ## Customize (your brand)
 
-Edit **`branding.user.json`** (copy from `branding.user.example.json`):
+Open **`http://127.0.0.1:8765/config.html`** after install, or edit **`branding.user.json`** (copy from `branding.user.example.json`):
 
 | Key | What it does |
 |-----|----------------|
@@ -41,7 +42,7 @@ Edit **`branding.user.json`** (copy from `branding.user.example.json`):
 
 Replace **`assets/logo.png`** with your logo (512×512 PNG recommended).
 
-Re-run `install.command` or restart the bridge after edits.
+Config page saves update `branding.user.json` and `overlays/branding.js`. For manual file edits, re-run `install.command` or restart the bridge.
 
 **Holographic Orb (OBS):** browser source must be **2560×1440** at position **0,0** (full canvas). After updating `orb.html`, right-click the source → **Refresh**.
 
@@ -49,6 +50,7 @@ Re-run `install.command` or restart the bridge after edits.
 
 The orb reads levels from `http://127.0.0.1:8765/level.json`.
 The local health panel is `http://127.0.0.1:8765/health.html`.
+The local config panel is `http://127.0.0.1:8765/config.html`.
 
 ```bash
 cd ~/Library/Application\ Support/OBS-Templates/nebula-vibe-desk
@@ -77,7 +79,7 @@ Target **−16 LUFS** integrated for streaming.
 ## Requirements
 
 - OBS Studio 30+
-- Python 3 + `websockets` (`pip3 install websockets`)
+- Python 3. The installer creates a local bridge venv and installs `websockets` there.
 - WebSocket enabled: OBS → Settings → WebSocket
 
 ## License

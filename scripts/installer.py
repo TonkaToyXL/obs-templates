@@ -300,6 +300,85 @@ def ensure_websocket() -> tuple[bool, str]:
     return True, note
 
 
+def bridge_venv_python(target: Path) -> Path:
+    if platform.system() == "Windows":
+        return target / "bridge" / ".venv" / "Scripts" / "python.exe"
+    return target / "bridge" / ".venv" / "bin" / "python"
+
+
+def bridge_python_candidates() -> list[str]:
+    candidates = [
+        "/opt/homebrew/bin/python3",
+        "/usr/local/bin/python3",
+        sys.executable,
+        "/usr/bin/python3",
+        "python3",
+    ]
+    seen: set[str] = set()
+    out: list[str] = []
+    for candidate in candidates:
+        if candidate and candidate not in seen:
+            seen.add(candidate)
+            out.append(candidate)
+    return out
+
+
+def command_tail(proc: subprocess.CompletedProcess[str], fallback: str) -> str:
+    text = (proc.stderr or proc.stdout or "").strip()
+    if not text:
+        return fallback
+    return text.splitlines()[-1][:220]
+
+
+def python_imports_module(python: Path | str, module: str) -> bool:
+    return subprocess.run(
+        [str(python), "-c", f"import {module}"],
+        check=False,
+        stdout=subprocess.DEVNULL,
+        stderr=subprocess.DEVNULL,
+    ).returncode == 0
+
+
+def ensure_bridge_venv(target: Path) -> tuple[bool, str]:
+    bridge = target / "bridge" / "orb-bridge.py"
+    if not bridge.exists():
+        return False, "bridge script not found"
+
+    venv = target / "bridge" / ".venv"
+    python = bridge_venv_python(target)
+    if python.exists() and python_imports_module(python, "websockets"):
+        return True, f"local Python venv ready at {venv}"
+
+    last_error = "python venv failed"
+    if not python.exists():
+        for candidate in bridge_python_candidates():
+            proc = subprocess.run(
+                [candidate, "-m", "venv", str(venv)],
+                check=False,
+                capture_output=True,
+                text=True,
+            )
+            if proc.returncode == 0 and python.exists():
+                break
+            last_error = command_tail(proc, f"{candidate} could not create venv")
+        else:
+            return False, f"could not create bridge venv: {last_error}"
+
+    if not python_imports_module(python, "websockets"):
+        proc = subprocess.run(
+            [str(python), "-m", "pip", "install", "--upgrade", "websockets"],
+            check=False,
+            capture_output=True,
+            text=True,
+        )
+        if proc.returncode != 0:
+            return False, f"could not install websockets in bridge venv: {command_tail(proc, 'pip failed')}"
+
+    if python_imports_module(python, "websockets"):
+        return True, f"local Python venv ready at {venv}"
+    return False, "websockets still unavailable after bridge venv repair"
+
+
 def install_launch_agent(target: Path, branding: dict) -> tuple[bool, str]:
     script = target / "bridge" / "start-bridge.sh"
     if not script.exists() or platform.system() != "Darwin":
@@ -363,7 +442,8 @@ def show_done_dialog(template_id: str, name: str) -> None:
         f"{name} is installed.\\n\\n"
         f"OBS → Scene Collection → {name}\\n"
         f"Scene → Vibe Coding\\n"
-        f"Health → http://127.0.0.1:8765/health.html"
+        f"Health → http://127.0.0.1:8765/health.html\\n"
+        f"Config → http://127.0.0.1:8765/config.html"
     )
     if platform.system() == "Darwin":
         subprocess.run(
@@ -404,6 +484,7 @@ def main() -> None:
             set_current_scene_collection(name, scenes[0])
 
     ws_ok, ws_note = ensure_websocket()
+    venv_ok, venv_note = ensure_bridge_venv(target)
     bridge_ok, bridge_note = install_launch_agent(target, branding)
 
     print()
@@ -414,11 +495,13 @@ def main() -> None:
     if scenes:
         print(f"Scene:     {obs_scenes_dir()}")
         for s in scenes:
-            print(f"  • {s}")
+            print(f"  - {s}")
         print()
         print(f"OBS → Scene Collection → {name} → Vibe Coding")
         print("Orb URL:   http://127.0.0.1:8765/overlays/orb.html")
         print("Health:    http://127.0.0.1:8765/health.html")
+        print("Config:    http://127.0.0.1:8765/config.html")
+    print(f"Bridge env:{' ' if venv_ok else ' warning: '}{venv_note}")
     print(f"Bridge:    {bridge_note}")
     if ws_ok:
         print("WebSocket: local mic bridge ready (127.0.0.1)")
@@ -427,7 +510,7 @@ def main() -> None:
     if not bridge_ok:
         print("Bridge fallback: run bridge/start-bridge.sh manually if needed.")
     print()
-    print("Customize: edit branding.user.json + replace assets/logo.png")
+    print("Customize: http://127.0.0.1:8765/config.html or edit branding.user.json")
 
     notify("Nebula Vibe Desk", f"{name} ready")
     if scenes:

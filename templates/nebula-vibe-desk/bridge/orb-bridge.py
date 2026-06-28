@@ -8,6 +8,7 @@ import base64
 import hashlib
 import json
 import os
+import re
 import signal
 import sys
 import threading
@@ -26,6 +27,9 @@ ROOT = Path(__file__).resolve().parent.parent
 ASSETS = ROOT
 LOG_PATH = ROOT / "bridge" / "orb-bridge.log"
 LEVEL_FILE = ROOT / "overlays" / "level-live.json"
+BRANDING_DEFAULT_FILE = ROOT / "branding.json"
+BRANDING_USER_FILE = ROOT / "branding.user.json"
+BRANDING_JS_FILE = ROOT / "overlays" / "branding.js"
 MAX_LOG_BYTES = 256_000
 STARTED_AT = time.time()
 PORT = int(os.environ.get("OBS_BRIDGE_PORT", os.environ.get("TONKA_ORB_PORT", "8765")))
@@ -61,6 +65,20 @@ SKIP_MIC_SUBSTR = (
     "nessie", "webcam", "c920", "replay", "output",
 )
 PREFER_MIC_SUBSTR = ("headset", "external microphone", "external mic", "mic/aux", " microphone")
+ORB_POSITIONS = ("lowerRight", "rightEdge", "centerRight", "lowerCenter")
+CONFIG_SCHEMA = {
+    "brandName": {"type": "text", "maxLength": 48},
+    "tagLine": {"type": "text", "maxLength": 72},
+    "logoFile": {"type": "path", "maxLength": 160},
+    "logoOpacity": {"type": "number", "min": 0, "max": 1},
+    "accentCyan": {"type": "color"},
+    "accentViolet": {"type": "color"},
+    "micInputName": {"type": "text", "maxLength": 120},
+    "orbPosition": {"type": "select", "options": ORB_POSITIONS},
+    "orbScale": {"type": "number", "min": 0.72, "max": 1.4},
+    "voiceSensitivity": {"type": "number", "min": 0.45, "max": 2.4},
+    "glowIntensity": {"type": "number", "min": 0.45, "max": 1.8},
+}
 
 state = {
     "level": 0.0,
@@ -78,15 +96,103 @@ _last_log_at = 0.0
 _offline_logged = False
 
 
+def read_json(path: Path) -> dict:
+    if not path.exists():
+        return {}
+    try:
+        data = json.loads(path.read_text(encoding="utf-8"))
+    except (OSError, json.JSONDecodeError, ValueError):
+        return {}
+    return data if isinstance(data, dict) else {}
+
+
 def load_branding() -> dict:
-    for name in ("branding.user.json", "branding.json"):
-        path = ROOT / name
-        if path.exists():
-            try:
-                return json.loads(path.read_text(encoding="utf-8"))
-            except json.JSONDecodeError:
-                pass
-    return {}
+    branding = read_json(BRANDING_DEFAULT_FILE)
+    branding.update(read_json(BRANDING_USER_FILE))
+    return branding
+
+
+def write_branding_js(branding: dict) -> None:
+    BRANDING_JS_FILE.parent.mkdir(parents=True, exist_ok=True)
+    tmp = BRANDING_JS_FILE.with_suffix(".js.tmp")
+    tmp.write_text(
+        "window.BRANDING = " + json.dumps(branding, indent=2) + ";\n",
+        encoding="utf-8",
+    )
+    tmp.replace(BRANDING_JS_FILE)
+
+
+def clamp_number(value, lo: float, hi: float) -> float:
+    try:
+        num = float(value)
+    except (TypeError, ValueError):
+        raise ValueError("not a number") from None
+    if num < lo:
+        return lo
+    if num > hi:
+        return hi
+    return round(num, 3)
+
+
+def clean_text(value, max_length: int) -> str:
+    text = str(value or "").replace("\x00", "").strip()
+    return text[:max_length]
+
+
+def clean_relative_path(value, max_length: int) -> str:
+    text = clean_text(value, max_length).replace("\\", "/")
+    if not text or text.startswith("/") or ".." in Path(text).parts:
+        raise ValueError("path must be relative to the template")
+    return text
+
+
+def clean_color(value) -> str:
+    text = clean_text(value, 16)
+    if re.fullmatch(r"#[0-9a-fA-F]{3}", text):
+        return "#" + "".join(ch * 2 for ch in text[1:]).lower()
+    if re.fullmatch(r"#[0-9a-fA-F]{6}", text):
+        return text.lower()
+    raise ValueError("color must be #RGB or #RRGGBB")
+
+
+def sanitize_config(payload: dict) -> tuple[dict, dict]:
+    if not isinstance(payload, dict):
+        raise ValueError("config payload must be a JSON object")
+    incoming = payload.get("config") if isinstance(payload.get("config"), dict) else payload
+    clean: dict = {}
+    errors: dict = {}
+    for key, spec in CONFIG_SCHEMA.items():
+        if key not in incoming:
+            continue
+        try:
+            if spec["type"] == "number":
+                clean[key] = clamp_number(incoming[key], spec["min"], spec["max"])
+            elif spec["type"] == "color":
+                clean[key] = clean_color(incoming[key])
+            elif spec["type"] == "select":
+                value = str(incoming[key])
+                if value not in spec["options"]:
+                    raise ValueError("unknown option")
+                clean[key] = value
+            elif spec["type"] == "path":
+                clean[key] = clean_relative_path(incoming[key], spec["maxLength"])
+            else:
+                clean[key] = clean_text(incoming[key], spec["maxLength"])
+        except ValueError as exc:
+            errors[key] = str(exc)
+    return clean, errors
+
+
+def config_payload() -> dict:
+    return {
+        "config": load_branding(),
+        "schema": CONFIG_SCHEMA,
+        "runtime": {
+            "root": str(ROOT),
+            "config_file": str(BRANDING_USER_FILE),
+            "branding_js": str(BRANDING_JS_FILE),
+        },
+    }
 
 
 def mic_input_name() -> str:
@@ -206,33 +312,91 @@ class BridgeHandler(SimpleHTTPRequestHandler):
         if path.endswith((".html", ".json", ".js")):
             self.send_header("Cache-Control", "no-store")
         self.send_header("Access-Control-Allow-Origin", "*")
+        self.send_header("Access-Control-Allow-Methods", "GET, HEAD, OPTIONS, POST")
+        self.send_header("Access-Control-Allow-Headers", "Content-Type")
         super().end_headers()
+
+    def send_json(self, payload: dict, status: int = 200):
+        body = json.dumps(payload).encode()
+        self.send_response(status)
+        self.send_header("Content-Type", "application/json")
+        self.send_header("Content-Length", str(len(body)))
+        self.end_headers()
+        self.wfile.write(body)
+
+    def local_origin_allowed(self) -> bool:
+        origin = self.headers.get("Origin", "")
+        return (
+            not origin
+            or origin.startswith(f"http://127.0.0.1:{PORT}")
+            or origin.startswith(f"http://localhost:{PORT}")
+        )
+
+    def do_OPTIONS(self):
+        self.send_response(204)
+        self.end_headers()
 
     def do_GET(self):
         path = self.path.split("?", 1)[0]
         if path == "/level.json":
-            body = json.dumps(state).encode()
-            self.send_response(200)
-            self.send_header("Content-Type", "application/json")
-            self.send_header("Content-Length", str(len(body)))
-            self.end_headers()
-            self.wfile.write(body)
+            self.send_json(state)
             return
         if path == "/health.json":
-            body = json.dumps(health_payload()).encode()
-            self.send_response(200)
-            self.send_header("Content-Type", "application/json")
-            self.send_header("Content-Length", str(len(body)))
-            self.end_headers()
-            self.wfile.write(body)
+            self.send_json(health_payload())
+            return
+        if path == "/config.json":
+            self.send_json(config_payload())
             return
         if path == "/health.html":
             self.path = "/overlays/health.html"
+        elif path == "/config.html":
+            self.path = "/overlays/config.html"
         super().do_GET()
 
+    def do_POST(self):
+        path = self.path.split("?", 1)[0]
+        if path != "/config.json":
+            self.send_error(404)
+            return
+        if not self.local_origin_allowed():
+            self.send_json({"ok": False, "error": "config writes must come from the local bridge page"}, 403)
+            return
+        try:
+            length = int(self.headers.get("Content-Length", "0") or 0)
+        except ValueError:
+            self.send_json({"ok": False, "error": "invalid content length"}, 400)
+            return
+        if length < 1 or length > 32768:
+            self.send_json({"ok": False, "error": "config payload is empty or too large"}, 413)
+            return
+        try:
+            payload = json.loads(self.rfile.read(length).decode("utf-8"))
+            clean, errors = sanitize_config(payload)
+        except (UnicodeDecodeError, json.JSONDecodeError, ValueError) as exc:
+            self.send_json({"ok": False, "error": str(exc)}, 400)
+            return
+        if errors:
+            self.send_json({"ok": False, "errors": errors, **config_payload()}, 422)
+            return
+        try:
+            existing = read_json(BRANDING_USER_FILE)
+            existing.update(clean)
+            BRANDING_USER_FILE.parent.mkdir(parents=True, exist_ok=True)
+            tmp = BRANDING_USER_FILE.with_suffix(".json.tmp")
+            tmp.write_text(json.dumps(existing, indent=2) + "\n", encoding="utf-8")
+            tmp.replace(BRANDING_USER_FILE)
+            write_branding_js(load_branding())
+        except OSError as exc:
+            self.send_json({"ok": False, "error": str(exc)}, 500)
+            return
+        self.send_json({"ok": True, **config_payload()})
+
     def do_HEAD(self):
-        if self.path.split("?", 1)[0] == "/health.html":
+        path = self.path.split("?", 1)[0]
+        if path == "/health.html":
             self.path = "/overlays/health.html"
+        elif path == "/config.html":
+            self.path = "/overlays/config.html"
         super().do_HEAD()
 
 
@@ -266,10 +430,15 @@ async def obs_session() -> None:
             await ws.send(json.dumps({"op": 6, "d": {"requestType": req_type, "requestId": f"orb-{req_id}", "requestData": data or {}}}))
 
         async def refresh_inputs(force: bool = False) -> None:
-            nonlocal last_input_check
+            nonlocal last_input_check, target_mic, warned_missing
             now = time.time()
             if force or now - last_input_check > 8:
                 last_input_check = now
+                preferred = mic_input_name()
+                if not INPUT_NAME and preferred and preferred != target_mic:
+                    target_mic = preferred
+                    state["input_name"] = target_mic
+                    warned_missing = False
                 await request("GetInputList")
 
         await refresh_inputs(force=True)
@@ -328,6 +497,7 @@ async def obs_loop() -> None:
         except Exception as exc:
             state["connected"] = False
             state["meter_seen"] = False
+            state["input_found"] = False
             state["target"] = 0.0
             state["level"] *= 0.85
             state["last_error"] = str(exc)

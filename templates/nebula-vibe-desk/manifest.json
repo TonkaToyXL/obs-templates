@@ -1,8 +1,8 @@
 {
   "id": "nebula-vibe-desk",
   "name": "Nebula Vibe Desk",
-  "version": "2.0.0",
-  "description": "Full-screen cosmic sky, shooting stars, moon, and voice-reactive holographic orb — your logo and brand bar are yours to customize.",
+  "version": "2.1.0",
+  "description": "Full-screen cosmic sky, shooting stars, moon, and voice-reactive holographic orb with local health and config panels.",
   "obsMinVersion": "30.0",
   "installType": "scene-collection",
   "tags": ["browser-source", "scene-collection", "mic-reactive", "cosmic", "vibe-coding", "full-screen"],

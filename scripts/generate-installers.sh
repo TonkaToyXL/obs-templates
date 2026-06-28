@@ -56,15 +56,15 @@ steps_overlay = [
     ("Download & unzip", "Get the zip from GitHub. Unzip anywhere.", "one click on the repo"),
     ("Double-click install", "Mac: <code>install.command</code><br>Windows: <code>Install.bat</code>", "installs runtime + opens OBS"),
     ("Pick the scene", "OBS > <strong>Scene Collection</strong> > your template > scene <strong>Vibe Coding</strong>.", "one menu pick"),
-    ("Check health", "Open <code>http://127.0.0.1:8765/health.html</code> to verify the bridge, OBS, mic, and meter.", "local diagnostics"),
+    ("Check health", "Open <code>http://127.0.0.1:8765/health.html</code> to verify the bridge, OBS, mic, and meter. Open <code>http://127.0.0.1:8765/config.html</code> for local tuning.", "local diagnostics"),
     ("Talk", "Mic reactive orb lights up when you speak. WebSocket stays local to this machine.", "127.0.0.1 only"),
 ]
 steps_scene = [
     ("Download & unzip", "Get the zip from GitHub.", "free / no account"),
     ("Double-click install", "Mac: <code>install.command</code> / Windows: <code>Install.bat</code>", "installs runtime + opens OBS"),
     ("Pick the scene", f"OBS > <strong>Scene Collection</strong> > <strong>{html.escape(name)}</strong> > <strong>Vibe Coding</strong>.", "orb source is ready"),
-    ("Check health", "Open <code>http://127.0.0.1:8765/health.html</code> to verify the bridge, OBS, mic, and meter.", "local diagnostics"),
-    ("Customize your brand", "Replace <code>assets/logo.png</code> and edit <code>branding.user.json</code> (copy from <code>branding.user.example.json</code>). Re-run install to refresh the brand bar.", "optional"),
+    ("Check health", "Open <code>http://127.0.0.1:8765/health.html</code> to verify the bridge, OBS, mic, and meter. Open <code>http://127.0.0.1:8765/config.html</code> for local tuning.", "local diagnostics"),
+    ("Customize your brand", "Use <code>http://127.0.0.1:8765/config.html</code>, or replace <code>assets/logo.png</code> and edit <code>branding.user.json</code> (copy from <code>branding.user.example.json</code>).", "optional"),
 ]
 steps = steps_scene if install_type == "scene-collection" else steps_overlay
 
@@ -376,7 +376,7 @@ out = f"""<!DOCTYPE html>
     <header class="header">
       <div class="brand-fallback">OBS Template</div>
       <div class="pack-title">{html.escape(name)}</div>
-      <p class="sub">Local install guide. Mac runtime: <em>~/Library/Application Support/OBS-Templates</em>. Health: <em>127.0.0.1:8765</em>.</p>
+      <p class="sub">Local install guide. Mac runtime: <em>~/Library/Application Support/OBS-Templates</em>. Health/config: <em>127.0.0.1:8765</em>.</p>
       <div class="badge-row">
         <span class="badge live">browser source</span>
         <span class="badge">obs {html.escape(manifest.get("obsMinVersion", "30+"))}</span>

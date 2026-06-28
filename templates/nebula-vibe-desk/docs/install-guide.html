@@ -294,7 +294,7 @@
     <header class="header">
       <div class="brand-fallback">OBS Template</div>
       <div class="pack-title">Nebula Vibe Desk</div>
-      <p class="sub">Local install guide. Mac runtime: <em>~/Library/Application Support/OBS-Templates</em>. Health: <em>127.0.0.1:8765</em>.</p>
+      <p class="sub">Local install guide. Mac runtime: <em>~/Library/Application Support/OBS-Templates</em>. Health/config: <em>127.0.0.1:8765</em>.</p>
       <div class="badge-row">
         <span class="badge live">browser source</span>
         <span class="badge">obs 30.0</span>
@@ -332,7 +332,7 @@
         <span class="step-tag">local diagnostics</span>
       </div>
       <h2>Check health</h2>
-      <p class="body">Open <code>http://127.0.0.1:8765/health.html</code> to verify the bridge, OBS, mic, and meter.</p>
+      <p class="body">Open <code>http://127.0.0.1:8765/health.html</code> to verify the bridge, OBS, mic, and meter. Open <code>http://127.0.0.1:8765/config.html</code> for local tuning.</p>
     </section>
     <section class="slide" data-step="5">
       <div class="slide-top">
@@ -340,7 +340,7 @@
         <span class="step-tag">optional</span>
       </div>
       <h2>Customize your brand</h2>
-      <p class="body">Replace <code>assets/logo.png</code> and edit <code>branding.user.json</code> (copy from <code>branding.user.example.json</code>). Re-run install to refresh the brand bar.</p>
+      <p class="body">Use <code>http://127.0.0.1:8765/config.html</code>, or replace <code>assets/logo.png</code> and edit <code>branding.user.json</code> (copy from <code>branding.user.example.json</code>).</p>
     </section>
     <div class="nav">
       <button id="prev" disabled>Back</button>

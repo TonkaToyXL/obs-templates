@@ -175,16 +175,24 @@
     if(!isFinite(v)) v=fallback;
     return clamp(v,min,max);
   }
-  var VOICE_SENSITIVITY=cfgNumber("voiceSensitivity",1,0.45,2.4);
-  var ORB_SCALE=cfgNumber("orbScale",1,0.72,1.4);
-  var GLOW_INTENSITY=cfgNumber("glowIntensity",1,0.45,1.8);
+  var VOICE_SENSITIVITY=1;
+  var ORB_SCALE=1;
+  var GLOW_INTENSITY=1;
   var POSITION_PRESETS={
     lowerRight:{x:1965,y:1045,rx:72,ry:54},
     rightEdge:{x:2210,y:1140,rx:44,ry:34},
     centerRight:{x:2105,y:730,rx:58,ry:44},
     lowerCenter:{x:1280,y:1060,rx:62,ry:34}
   };
-  var POS=POSITION_PRESETS[String(C.orbPosition||"lowerRight")]||POSITION_PRESETS.lowerRight;
+  var POS=POSITION_PRESETS.lowerRight;
+  function applyConfig(next){
+    if(next&&typeof next==="object") C=Object.assign({},C,next);
+    VOICE_SENSITIVITY=cfgNumber("voiceSensitivity",1,0.45,2.4);
+    ORB_SCALE=cfgNumber("orbScale",1,0.72,1.4);
+    GLOW_INTENSITY=cfgNumber("glowIntensity",1,0.45,1.8);
+    POS=POSITION_PRESETS[String(C.orbPosition||"lowerRight")]||POSITION_PRESETS.lowerRight;
+  }
+  applyConfig({});
   var wrap=document.querySelector(".wrap");
   var orb=document.getElementById("orb"), halo=document.getElementById("halo"), plasma=document.getElementById("plasma");
   var face=document.getElementById("face"), eyeL=document.getElementById("eyeL"), eyeR=document.getElementById("eyeR");
@@ -275,6 +283,18 @@
   function schedulePoll(delay){
     if(pollTimer) clearTimeout(pollTimer);
     pollTimer=setTimeout(poll,delay);
+  }
+
+  function refreshConfig(){
+    if(!onHttp) return;
+    fetch("/config.json",{cache:"no-store"}).then(function(r){
+      if(!r.ok) throw 0;
+      return r.json();
+    }).then(function(d){
+      applyConfig(d.config||d);
+    }).catch(function(){}).finally(function(){
+      setTimeout(refreshConfig,2200);
+    });
   }
 
   function setBrows(lLift,rLift,lCurve,rCurve, pinch){
@@ -462,7 +482,7 @@
     drawStars(now,g); drawFx(now,g,burst); updateFace(now,g,m,speaking);
     requestAnimationFrame(render);
   }
-  poll(); requestAnimationFrame(render);
+  poll(); refreshConfig(); requestAnimationFrame(render);
 })();
 </script>
 </body>

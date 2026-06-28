@@ -49,6 +49,7 @@ def browser(name, u, rel_path, w, h, css="", local=True):
         settings["is_local_file"] = True
         settings["local_file"] = f"{INSTALL}/{rel_path}"
     else:
+        settings["is_local_file"] = False
         settings["url"] = rel_path
     return {
         "prev_ver": 503382018,
@@ -204,7 +205,7 @@ collection = {
         browser("Privacy Mask", ids["privacy"], "overlays/privacy-blur.html", W, H),
         image_logo("Stream Logo", ids["logo"], BRANDING.get("logoOpacity", 0.52)),
         browser("Brand Bar (Live)", ids["brand_live"], "overlays/brandbar.html?mode=live", 720, 90),
-        browser("Holographic Orb", ids["orb"], "overlays/orb.html", W, H),
+        browser("Holographic Orb", ids["orb"], "http://127.0.0.1:8765/overlays/orb.html", W, H, local=False),
         browser("Soon Backdrop", ids["soon_bg"], "overlays/soon-backdrop.html", W, H),
         browser("Brand Bar (Soon)", ids["brand_soon"], "overlays/brandbar.html?mode=soon", 720, 90),
         make_scene("Vibe Coding", ids["scene_vibe"], ids["canvas_vibe"], vibe_items),
