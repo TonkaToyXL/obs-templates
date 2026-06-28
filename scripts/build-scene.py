@@ -19,12 +19,12 @@ BRANDING = json.loads(BRANDING_PATH.read_text()) if BRANDING_PATH.exists() else 
 W, H = 2560, 1440
 INSTALL = "{{INSTALL_DIR}}"
 
-# Stable uuids per build (regenerated each run — fine for template)
-def uid():
-    return str(uuid.uuid4())
+# Stable uuids keep generated scene files reviewable between package runs.
+def uid(name: str) -> str:
+    return str(uuid.uuid5(uuid.NAMESPACE_URL, f"tonkatoyxl:obs-template:nebula-vibe-desk:{name}"))
 
 
-ids = {k: uid() for k in (
+ids = {k: uid(k) for k in (
     "cosmic", "orb", "logo", "brand_live", "brand_soon", "privacy", "soon_bg",
     "scene_vibe", "scene_soon", "canvas_vibe", "canvas_soon",
 )}
@@ -90,7 +90,7 @@ def image_logo(name, u, opacity):
             {
                 "prev_ver": 503382018,
                 "name": "Logo Opacity",
-                "uuid": uid(),
+                "uuid": uid(f"{name}:logo-opacity"),
                 "id": "mask_filter",
                 "versioned_id": "mask_filter",
                 "settings": {"opacity": opacity},
@@ -159,7 +159,7 @@ def make_scene(name, u, canvas_u, items):
     }
 
 
-display_id = uid()
+display_id = uid("display")
 
 vibe_items = [
     scene_item("Display Capture", display_id, 1, (0, 0), (1, 1), (W, H), bounds_type=2),
