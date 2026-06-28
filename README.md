@@ -9,8 +9,18 @@ Free OBS overlays and scene packs from [TonkaToyXL](https://github.com/TonkaToyX
 | Template | What it is | Download | OBS |
 |----------|------------|----------|-----|
 <!-- DOWNLOADS:START -->
-| **Nebula Vibe Desk** | Full-screen cosmic sky, shooting stars, moon, and voice-reactive holographic orb with local health and config panels. | [Download `nebula-vibe-desk-v2.1.0.zip`](./dist/nebula-vibe-desk-v2.1.0.zip) (216 KB) | 30.0 |
+| **Nebula Vibe Desk** | Full-screen cosmic sky, shooting stars, moon, and voice-reactive holographic orb with local health and config panels. | [Download `nebula-vibe-desk-v2.1.0.zip`](./dist/nebula-vibe-desk-v2.1.0.zip) (277 KB) | 30.0 |
 <!-- DOWNLOADS:END -->
+
+## Preview
+
+**Nebula Vibe Desk v2.1.0**
+
+![Nebula Vibe Coding scene preview](./templates/nebula-vibe-desk/docs/previews/vibe-coding.webp)
+
+| Starting Soon | Local config panel |
+|---------------|--------------------|
+| ![Nebula Starting Soon scene preview](./templates/nebula-vibe-desk/docs/previews/starting-soon.webp) | ![Nebula config panel preview](./templates/nebula-vibe-desk/docs/previews/config-panel.webp) |
 
 Each zip is **plug-and-play**:
 

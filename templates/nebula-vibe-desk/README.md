@@ -3,6 +3,16 @@
 Full-screen **cosmic sky** (stars, moon, shooting stars) + **voice-reactive holographic orb** for vibe-coding streams.  
 Download from [TonkaToyXL/obs-templates](https://github.com/TonkaToyXL/obs-templates).
 
+## Preview
+
+**Current preview: v2.1.0**
+
+![Nebula Vibe Coding scene preview](docs/previews/vibe-coding.webp)
+
+| Starting Soon | Local config panel |
+|---------------|--------------------|
+| ![Nebula Starting Soon scene preview](docs/previews/starting-soon.webp) | ![Nebula config panel preview](docs/previews/config-panel.webp) |
+
 ## Install (double-click)
 
 | Platform | File |
