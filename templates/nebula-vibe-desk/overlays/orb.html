@@ -2,11 +2,11 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8" />
-<title>TonkaToyXL Orb</title>
+<title>Holographic Orb</title>
 <style>
   :root {
-    --blue:#0090c8; --blue-bright:#2aa8d8; --magenta:#9a4ab8;
-    --violet:#6a5acd; --pink:#c060c8; --warm:#e8a060; --core:#04060e;
+    --blue:#009bd8; --blue-bright:#34c0ff; --magenta:#9a4ab8;
+    --violet:#7c4dff; --pink:#d56cff; --warm:#ffd08a; --core:#04060e;
   }
   * { margin:0;padding:0;box-sizing:border-box; }
   html,body { width:2560px;height:1440px;background:transparent;overflow:hidden; }
@@ -14,6 +14,7 @@
   .wrap {
     position:absolute;width:378px;height:378px;left:1960px;top:1040px;
     display:flex;align-items:center;justify-content:center;
+    filter:drop-shadow(0 18px 32px rgba(0,0,0,0.42));
     will-change:left,top,transform;
   }
   .fx-canvas { position:absolute;inset:0;width:100%;height:100%;pointer-events:none;z-index:6; }
@@ -26,9 +27,17 @@
   .ring-shell.s1 { width:286px;height:286px; }
   .ring-shell.s2 { width:309px;height:309px; }
   .ring {
+    position:relative;
     width:100%;height:100%;border-radius:50%;border:1px solid rgba(42,168,216,0.16);
     box-shadow:0 0 6px rgba(42,168,216,0.08), inset 0 0 4px rgba(42,168,216,0.04);
     animation:spin 26s linear infinite;
+  }
+  .ring::after {
+    content:"";position:absolute;inset:-2px;border-radius:50%;
+    background:conic-gradient(from 28deg,transparent 0 58%,rgba(52,192,255,0.36) 64%,transparent 70% 100%);
+    -webkit-mask:radial-gradient(circle,transparent 62%,#000 64%,#000 68%,transparent 70%);
+    mask:radial-gradient(circle,transparent 62%,#000 64%,#000 68%,transparent 70%);
+    opacity:0.72;
   }
   .ring-shell.s2 .ring {
     border-color:rgba(224,64,251,0.22);
@@ -41,6 +50,11 @@
     will-change:transform,filter; isolation:isolate; z-index:3; background:var(--core);
     box-shadow:0 0 22px rgba(42,168,216,0.18),0 0 40px rgba(154,74,184,0.12),
       inset 0 0 0 2px rgba(42,168,216,0.22), inset 0 0 32px rgba(0,0,0,0.95);
+  }
+  .orb-body::after {
+    content:"";position:absolute;inset:0;border-radius:50%;z-index:6;pointer-events:none;
+    background:repeating-linear-gradient(180deg,rgba(255,255,255,0.055) 0 1px,transparent 1px 7px);
+    mix-blend-mode:screen;opacity:0.10;
   }
   .orb-occlude {
     position:absolute;inset:8%;border-radius:50%;z-index:2;pointer-events:none;
@@ -108,6 +122,9 @@
   .teeth.show { opacity:1; }
   .orb-body.idle { animation:breathe 6s ease-in-out infinite; }
   @keyframes breathe { 0%,100%{transform:scale(0.992);filter:brightness(0.94) saturate(1.02)} 50%{transform:scale(1.006);filter:brightness(0.97) saturate(1.04)} }
+  @media (prefers-reduced-motion: reduce) {
+    .ring, .plasma, .orb-body.idle { animation: none; }
+  }
 </style>
 </head>
 <body>
@@ -142,11 +159,32 @@
       </div>
     </div>
   </div>
+<script src="branding.js"></script>
 <script>
 (function(){
   "use strict";
-  var BRIDGE="http://127.0.0.1:8765/level.json", POLL_MS=25;
+  var C=window.BRANDING||{};
+  var onHttp=(location.protocol==="http:"||location.protocol==="https:");
+  var LEVEL_SRCS=onHttp
+    ?["/level.json","level-live.json","http://127.0.0.1:8765/level.json"]
+    :["level-live.json","http://127.0.0.1:8765/level.json"];
+  var levelSrc=0, POLL_MS=33, RETRY_MS=300;
   var ATTACK=0.35, RELEASE=0.1, MOUTH_ATTACK=0.78, MOUTH_RELEASE=0.12, IDLE_THRESHOLD=0.01;
+  function cfgNumber(name,fallback,min,max){
+    var v=Number(C[name]);
+    if(!isFinite(v)) v=fallback;
+    return clamp(v,min,max);
+  }
+  var VOICE_SENSITIVITY=cfgNumber("voiceSensitivity",1,0.45,2.4);
+  var ORB_SCALE=cfgNumber("orbScale",1,0.72,1.4);
+  var GLOW_INTENSITY=cfgNumber("glowIntensity",1,0.45,1.8);
+  var POSITION_PRESETS={
+    lowerRight:{x:1965,y:1045,rx:72,ry:54},
+    rightEdge:{x:2210,y:1140,rx:44,ry:34},
+    centerRight:{x:2105,y:730,rx:58,ry:44},
+    lowerCenter:{x:1280,y:1060,rx:62,ry:34}
+  };
+  var POS=POSITION_PRESETS[String(C.orbPosition||"lowerRight")]||POSITION_PRESETS.lowerRight;
   var wrap=document.querySelector(".wrap");
   var orb=document.getElementById("orb"), halo=document.getElementById("halo"), plasma=document.getElementById("plasma");
   var face=document.getElementById("face"), eyeL=document.getElementById("eyeL"), eyeR=document.getElementById("eyeR");
@@ -161,6 +199,7 @@
   var nextBlink=0, wasIdle=true;
   var expr="idle", starDots=[], bolts=[];
   var wasSpeaking=false, speakAccent=0, nextAccent=0, microSmile=0, nextDoubleBlink=0;
+  var pollTimer=null, bridgeOnline=false;
 
   function rand(a,b){return a+Math.random()*(b-a);}
   function clamp(v,lo,hi){return v<lo?lo:v>hi?hi:v;}
@@ -217,10 +256,25 @@
   }
 
   function poll(){
-    fetch(BRIDGE,{cache:"no-store"}).then(function(r){return r.json();}).then(function(d){
-      var t=typeof d.level==="number"?d.level:0;
+    fetch(LEVEL_SRCS[levelSrc],{cache:"no-store"}).then(function(r){
+      if(!r.ok) throw 0;
+      return r.json();
+    }).then(function(d){
+      var t=clamp((typeof d.level==="number"?d.level:0)*VOICE_SENSITIVITY,0,1);
       vel=t-prevTarget; prevTarget=target; target=t;
-    }).catch(function(){vel=0;target=0;});
+      bridgeOnline=true;
+      schedulePoll(POLL_MS);
+    }).catch(function(){
+      vel=0; target=0;
+      bridgeOnline=false;
+      levelSrc=(levelSrc+1)%LEVEL_SRCS.length;
+      schedulePoll(RETRY_MS);
+    });
+  }
+
+  function schedulePoll(delay){
+    if(pollTimer) clearTimeout(pollTimer);
+    pollTimer=setTimeout(poll,delay);
   }
 
   function setBrows(lLift,rLift,lCurve,rCurve, pinch){
@@ -388,27 +442,27 @@
     if(speaking!==wasIdle){orb.classList.toggle("idle",!speaking);wasIdle=speaking;}
     var g=level, m=mouthLevel;
     var sc=1+g*0.022+burst*0.008;
-    var warm=0.1+g*0.18;
+    var warm=(0.1+g*0.18)*GLOW_INTENSITY;
     orb.style.transform="scale("+sc.toFixed(4)+")";
-    orb.style.filter="brightness("+(0.94+g*0.1).toFixed(3)+") saturate("+(1.05+g*0.15).toFixed(2)+")";
-    orb.style.boxShadow="0 0 "+(24+g*32).toFixed(0)+"px rgba(232,160,96,"+(0.1+warm).toFixed(2)+"),0 0 "+(38+g*40).toFixed(0)+"px rgba(42,168,216,"+(0.14+g*0.2).toFixed(2)+"),0 0 "+(48+g*46).toFixed(0)+"px rgba(154,74,184,"+(0.1+g*0.14).toFixed(2)+"),inset 0 0 0 2px rgba(42,168,216,"+(0.22+g*0.16).toFixed(2)+"),inset 0 0 36px rgba(0,0,0,0.96)";
-    halo.style.transform="scale("+(1+g*0.05).toFixed(3)+")"; halo.style.opacity=(0.35+g*0.28).toFixed(2);
-    plasma.style.opacity=(0.5+g*0.22).toFixed(2);
-    ring1.style.transform="scale("+(1+g*0.02).toFixed(3)+") rotate("+(g*3).toFixed(1)+"deg)"; ring1.style.opacity=(0.22+g*0.2).toFixed(2);
-    ring2.style.transform="scale("+(1+g*0.025).toFixed(3)+") rotate("+(-g*4).toFixed(1)+"deg)"; ring2.style.opacity=(0.18+g*0.16).toFixed(2);
+    orb.style.filter="brightness("+(0.94+g*0.1*GLOW_INTENSITY).toFixed(3)+") saturate("+(1.05+g*0.15*GLOW_INTENSITY).toFixed(2)+")";
+    orb.style.boxShadow="0 0 "+(24+g*32*GLOW_INTENSITY).toFixed(0)+"px rgba(232,160,96,"+clamp(0.1+warm,0,0.8).toFixed(2)+"),0 0 "+(38+g*40*GLOW_INTENSITY).toFixed(0)+"px rgba(42,168,216,"+clamp(0.14+g*0.2*GLOW_INTENSITY,0,0.75).toFixed(2)+"),0 0 "+(48+g*46*GLOW_INTENSITY).toFixed(0)+"px rgba(154,74,184,"+clamp(0.1+g*0.14*GLOW_INTENSITY,0,0.7).toFixed(2)+"),inset 0 0 0 2px rgba(42,168,216,"+clamp(0.22+g*0.16*GLOW_INTENSITY,0,0.82).toFixed(2)+"),inset 0 0 36px rgba(0,0,0,0.96)";
+    halo.style.transform="scale("+(1+g*0.05*GLOW_INTENSITY).toFixed(3)+")"; halo.style.opacity=clamp(0.35+g*0.28*GLOW_INTENSITY,0,0.9).toFixed(2);
+    plasma.style.opacity=clamp(0.5+g*0.22*GLOW_INTENSITY,0,0.92).toFixed(2);
+    ring1.style.transform="scale("+(1+g*0.02*GLOW_INTENSITY).toFixed(3)+") rotate("+(g*3).toFixed(1)+"deg)"; ring1.style.opacity=clamp(0.22+g*0.2*GLOW_INTENSITY,0,0.75).toFixed(2);
+    ring2.style.transform="scale("+(1+g*0.025*GLOW_INTENSITY).toFixed(3)+") rotate("+(-g*4).toFixed(1)+"deg)"; ring2.style.opacity=clamp(0.18+g*0.16*GLOW_INTENSITY,0,0.7).toFixed(2);
     var floatAmp=speaking?0.92:1;
-    var anchorX=1965, anchorY=1045, roamX=72, roamY=54;
+    var anchorX=POS.x, anchorY=POS.y, roamX=POS.rx, roamY=POS.ry;
     var t=now*0.00105;
     var px=anchorX+Math.sin(t)*roamX*floatAmp;
     var py=anchorY+(Math.sin(t*1.35+0.8)*roamY+Math.sin(t*2.1)*6)*floatAmp;
     var ftilt=Math.sin(t*0.85)*1.1*floatAmp;
     wrap.style.left=px.toFixed(1)+"px";
     wrap.style.top=py.toFixed(1)+"px";
-    wrap.style.transform="translate(-50%,-50%) rotate("+ftilt.toFixed(2)+"deg)";
+    wrap.style.transform="translate(-50%,-50%) rotate("+ftilt.toFixed(2)+"deg) scale("+ORB_SCALE.toFixed(3)+")";
     drawStars(now,g); drawFx(now,g,burst); updateFace(now,g,m,speaking);
     requestAnimationFrame(render);
   }
-  setInterval(poll,POLL_MS); poll(); requestAnimationFrame(render);
+  poll(); requestAnimationFrame(render);
 })();
 </script>
 </body>

@@ -70,6 +70,45 @@
     ctx.fillStyle=mg;ctx.fillRect(0,0,W,H);
   }
 
+  function drawSignalRibbons(now){
+    ctx.save();
+    ctx.globalCompositeOperation="lighter";
+    for(var i=0;i<3;i++){
+      var base=H*(0.62+i*0.085);
+      var sway=Math.sin(now*0.00022+i*1.7)*22;
+      var y=base+sway;
+      var g=ctx.createLinearGradient(W*0.10,y,W*0.96,y+90);
+      g.addColorStop(0,"rgba(0,171,253,0)");
+      g.addColorStop(0.38,"rgba(0,171,253,0.035)");
+      g.addColorStop(0.62,"rgba(124,77,255,0.032)");
+      g.addColorStop(1,"rgba(124,77,255,0)");
+      ctx.strokeStyle=g;
+      ctx.lineWidth=1.2+i*0.45;
+      ctx.beginPath();
+      for(var x=0;x<=W;x+=160){
+        var yy=y+Math.sin(x*0.004+now*0.00038+i)*18+Math.sin(x*0.0018+i)*26;
+        if(x===0) ctx.moveTo(x,yy); else ctx.lineTo(x,yy);
+      }
+      ctx.stroke();
+    }
+    ctx.restore();
+  }
+
+  function drawVignette(){
+    var top=ctx.createLinearGradient(0,0,0,H);
+    top.addColorStop(0,"rgba(1,4,10,0.22)");
+    top.addColorStop(0.32,"rgba(1,4,10,0.04)");
+    top.addColorStop(0.70,"rgba(1,4,10,0.03)");
+    top.addColorStop(1,"rgba(1,4,10,0.24)");
+    ctx.fillStyle=top;ctx.fillRect(0,0,W,H);
+    var edge=ctx.createRadialGradient(W*0.56,H*0.52,spanSafe()*0.1,W*0.56,H*0.52,spanSafe()*0.75);
+    edge.addColorStop(0,"rgba(0,0,0,0)");
+    edge.addColorStop(1,"rgba(0,0,0,0.17)");
+    ctx.fillStyle=edge;ctx.fillRect(0,0,W,H);
+  }
+
+  function spanSafe(){return Math.max(W,H);}
+
   function drawStar(s,now){
     var tw=0.55+0.45*Math.sin(now*s.spd+s.phase)+0.15*Math.sin(now*s.spd*2.4+s.phase2);
     var a=clamp(s.base*s.depth*tw,0.22,1);
@@ -150,9 +189,10 @@
   function frame(now){
     if(!now) now=performance.now();
     ctx.clearRect(0,0,W,H);
-    drawNebula(); drawMoon(now);
+    drawNebula(); drawSignalRibbons(now); drawMoon(now);
     for(var i=0;i<stars.length;i++) drawStar(stars[i],now);
     drawShots(now);
+    drawVignette();
     requestAnimationFrame(frame);
   }
 

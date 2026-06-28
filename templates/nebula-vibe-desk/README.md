@@ -10,9 +10,9 @@ Download from [TonkaToyXL/obs-templates](https://github.com/TonkaToyXL/obs-templ
 | **Mac** | `install.command` |
 | **Windows** | `Install.bat` |
 
-Installs to `Documents/OBS-Templates/nebula-vibe-desk/`, registers the OBS scene collection, and starts the mic bridge.
+On Mac, installs the runtime to `~/Library/Application Support/OBS-Templates/nebula-vibe-desk/`, registers the OBS scene collection, and starts the mic bridge with LaunchAgent. Existing `~/Documents/OBS-Templates/nebula-vibe-desk/` branding/logo files are migrated when present and left in place.
 
-**In OBS:** Scene Collection → **nebula-vibe-desk** → scene **Vibe Coding**.
+**In OBS:** Scene Collection → **Nebula Vibe Desk** → scene **Vibe Coding**.
 
 ## What's included (core — don't need to touch)
 
@@ -34,6 +34,10 @@ Edit **`branding.user.json`** (copy from `branding.user.example.json`):
 | `logoOpacity` | Stream logo opacity (0–1) |
 | `accentCyan` / `accentViolet` | Brand bar accent colors |
 | `micInputName` | Your mic name in OBS (optional) |
+| `orbPosition` | Preset: `lowerRight`, `rightEdge`, `centerRight`, or `lowerCenter` |
+| `orbScale` | Whole-orb size multiplier (0.72–1.4) |
+| `voiceSensitivity` | Orb/mouth response multiplier (0.45–2.4) |
+| `glowIntensity` | Voice glow multiplier (0.45–1.8) |
 
 Replace **`assets/logo.png`** with your logo (512×512 PNG recommended).
 
@@ -44,13 +48,14 @@ Re-run `install.command` or restart the bridge after edits.
 ## Mic bridge
 
 The orb reads levels from `http://127.0.0.1:8765/level.json`.
+The local health panel is `http://127.0.0.1:8765/health.html`.
 
 ```bash
-cd ~/Documents/OBS-Templates/nebula-vibe-desk
+cd ~/Library/Application\ Support/OBS-Templates/nebula-vibe-desk
 ./bridge/start-bridge.sh
 ```
 
-**Mac auto-start:** copy `bridge/com.nebula-vibe-desk.bridge.plist.example` to `~/Library/LaunchAgents/`, replace `REPLACE_WITH_INSTALL_DIR`, then `launchctl load`.
+**Mac auto-start:** `install.command` writes `~/Library/LaunchAgents/com.nebula-vibe-desk.bridge.plist` automatically. The bridge reads OBS WebSocket auth from OBS's local config when needed, without storing secrets in the plist.
 
 ## Audio (not in scene file)
 

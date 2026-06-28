@@ -6,5 +6,9 @@
   "accentCyan": "#00abfd",
   "accentViolet": "#7c4dff",
   "bridgePort": 8765,
-  "micInputName": ""
+  "micInputName": "",
+  "orbPosition": "lowerRight",
+  "orbScale": 1,
+  "voiceSensitivity": 1,
+  "glowIntensity": 1
 }

@@ -43,8 +43,6 @@ EOF
 generate_guide() {
   local dir="$1"
   local id="$2"
-  local brand="$ROOT/scripts/brand"
-  cp "$brand/tonka-wordmark.svg" "$dir/docs/tonka-wordmark.svg" 2>/dev/null || true
   python3 - "$dir" "$id" <<'PY'
 import json, html, sys
 from pathlib import Path
@@ -56,14 +54,16 @@ install_type = manifest.get("installType", "overlay")
 
 steps_overlay = [
     ("Download & unzip", "Get the zip from GitHub. Unzip anywhere.", "one click on the repo"),
-    ("Double-click install", "Mac → <code>install.command</code><br>Windows → <code>Install.bat</code>", "installs scene + opens OBS"),
-    ("Pick the scene", "OBS → <strong>Scene Collection</strong> → your template → scene <strong>Vibe Coding</strong>.", "one menu pick"),
-    ("Talk", "Mic reactive orb lights up when you speak. WebSocket is enabled locally for you.", "127.0.0.1 only — safe"),
+    ("Double-click install", "Mac: <code>install.command</code><br>Windows: <code>Install.bat</code>", "installs runtime + opens OBS"),
+    ("Pick the scene", "OBS > <strong>Scene Collection</strong> > your template > scene <strong>Vibe Coding</strong>.", "one menu pick"),
+    ("Check health", "Open <code>http://127.0.0.1:8765/health.html</code> to verify the bridge, OBS, mic, and meter.", "local diagnostics"),
+    ("Talk", "Mic reactive orb lights up when you speak. WebSocket stays local to this machine.", "127.0.0.1 only"),
 ]
 steps_scene = [
-    ("Download & unzip", "Get the zip from GitHub.", "free · no account"),
-    ("Double-click install", "Mac → <code>install.command</code> · Windows → <code>Install.bat</code>", "installs scene + opens OBS"),
-    ("Pick the scene", f"OBS → <strong>Scene Collection</strong> → <strong>{manifest['id']}</strong> → talk into your mic.", "orb reacts instantly"),
+    ("Download & unzip", "Get the zip from GitHub.", "free / no account"),
+    ("Double-click install", "Mac: <code>install.command</code> / Windows: <code>Install.bat</code>", "installs runtime + opens OBS"),
+    ("Pick the scene", f"OBS > <strong>Scene Collection</strong> > <strong>{html.escape(name)}</strong> > <strong>Vibe Coding</strong>.", "orb source is ready"),
+    ("Check health", "Open <code>http://127.0.0.1:8765/health.html</code> to verify the bridge, OBS, mic, and meter.", "local diagnostics"),
     ("Customize your brand", "Replace <code>assets/logo.png</code> and edit <code>branding.user.json</code> (copy from <code>branding.user.example.json</code>). Re-run install to refresh the brand bar.", "optional"),
 ]
 steps = steps_scene if install_type == "scene-collection" else steps_overlay
@@ -80,231 +80,318 @@ for i, (title, body, tag) in enumerate(steps, 1):
       <p class="body">{body}</p>
     </section>"""
 
-wordmark = "tonka-wordmark.svg" if (dir_path / "docs/tonka-wordmark.svg").exists() else ""
-
 out = f"""<!DOCTYPE html>
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>Install — {html.escape(name)} · TonkaToyXL</title>
-  <link rel="preconnect" href="https://fonts.googleapis.com" />
-  <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;600&family=Space+Grotesk:wght@500;700&display=swap" rel="stylesheet" />
+  <title>Install - {html.escape(name)}</title>
   <style>
+    @font-face {{
+      font-family: "Syne";
+      src: url("../fonts/Syne-Variable.ttf") format("truetype");
+      font-weight: 600 800;
+      font-style: normal;
+      font-display: swap;
+    }}
+    @font-face {{
+      font-family: "JetBrains Mono";
+      src: url("../fonts/JetBrainsMono-Variable.ttf") format("truetype");
+      font-weight: 400 700;
+      font-style: normal;
+      font-display: swap;
+    }}
     :root {{
-      --tonka: #f4b800;
-      --tonka-dim: #c49200;
-      --cyan: #3ee8ff;
-      --violet: #a855f7;
-      --bg: #080b12;
-      --panel: #0f1419;
-      --line: #1c2433;
-      --text: #e8edf5;
-      --muted: #8b9bb4;
+      --cyan: #00abfd;
+      --violet: #7c4dff;
+      --bg: #05080d;
+      --panel: rgba(12,17,25,0.88);
+      --panel-strong: #101722;
+      --line: rgba(232,244,255,0.10);
+      --text: #e8f4ff;
+      --muted: #8aa0b8;
+      --soft: #b8c7d9;
     }}
     * {{ box-sizing: border-box; margin: 0; padding: 0; }}
+    html {{ background: var(--bg); overflow-x: hidden; }}
     body {{
-      font-family: "Space Grotesk", system-ui, sans-serif;
+      font-family: "Syne", system-ui, sans-serif;
       background: var(--bg);
       color: var(--text);
       min-height: 100vh;
-      padding: 2rem 1.25rem 3rem;
+      padding: 32px 20px 40px;
+      overflow-x: hidden;
+      -webkit-font-smoothing: antialiased;
     }}
     body::before {{
       content: "";
       position: fixed;
       inset: 0;
       background:
-        radial-gradient(ellipse 80% 50% at 15% 0%, rgba(244,184,0,0.07), transparent 55%),
-        radial-gradient(ellipse 60% 40% at 90% 100%, rgba(62,232,255,0.06), transparent 50%),
-        linear-gradient(rgba(255,255,255,0.02) 1px, transparent 1px),
-        linear-gradient(90deg, rgba(255,255,255,0.02) 1px, transparent 1px);
-      background-size: auto, auto, 28px 28px, 28px 28px;
+        radial-gradient(ellipse 72% 44% at 18% 0%, rgba(0,171,253,0.11), transparent 56%),
+        radial-gradient(ellipse 60% 44% at 88% 100%, rgba(124,77,255,0.13), transparent 52%),
+        linear-gradient(rgba(232,244,255,0.025) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(232,244,255,0.025) 1px, transparent 1px);
+      background-size: auto, auto, 32px 32px, 32px 32px;
       pointer-events: none;
       z-index: 0;
     }}
-    .deck {{ position: relative; z-index: 1; max-width: 680px; margin: 0 auto; }}
+    body::after {{
+      content: "";
+      position: fixed;
+      inset: 0;
+      background: radial-gradient(ellipse 70% 72% at 50% 44%, transparent 0%, rgba(0,0,0,0.35) 100%);
+      pointer-events: none;
+      z-index: 0;
+    }}
+    .deck {{ position: relative; z-index: 1; width: 100%; max-width: 760px; margin: 0 auto; }}
     .header {{
-      margin-bottom: 1.75rem;
-      padding-bottom: 1.25rem;
+      display: grid;
+      gap: 14px;
+      margin-bottom: 20px;
+      padding: 18px 0 22px;
       border-bottom: 1px solid var(--line);
     }}
-    .wordmark {{ height: 36px; width: auto; margin-bottom: 0.85rem; display: block; }}
     .brand-fallback {{
-      font-size: 1.65rem;
-      font-weight: 700;
-      letter-spacing: -0.03em;
-      margin-bottom: 0.85rem;
+      display: inline-flex;
+      width: fit-content;
+      align-items: center;
+      gap: 10px;
+      font-size: 13px;
+      font-weight: 800;
+      letter-spacing: 0.16em;
+      text-transform: uppercase;
+      color: var(--cyan);
     }}
-    .brand-fallback .t {{ color: var(--tonka); }}
-    .brand-fallback .xl {{ color: var(--cyan); }}
+    .brand-fallback::before {{
+      content: "";
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      background: var(--cyan);
+      box-shadow: 0 0 14px rgba(0,171,253,0.75);
+    }}
     .pack-title {{
-      font-size: 1.1rem;
-      font-weight: 700;
+      font-size: clamp(34px, 6vw, 56px);
+      font-weight: 800;
       color: var(--text);
-      margin-bottom: 0.35rem;
+      line-height: 0.95;
+      letter-spacing: 0;
+      overflow-wrap: break-word;
     }}
     .sub {{
-      font-family: "IBM Plex Mono", monospace;
-      font-size: 0.78rem;
+      max-width: 58ch;
+      font-family: "JetBrains Mono", ui-monospace, monospace;
+      font-size: 13px;
+      line-height: 1.7;
       color: var(--muted);
-      letter-spacing: 0.02em;
+      letter-spacing: 0;
+      overflow-wrap: break-word;
     }}
-    .sub em {{ color: var(--tonka); font-style: normal; }}
-    .badge-row {{ display: flex; gap: 0.5rem; flex-wrap: wrap; margin-top: 0.85rem; }}
+    .sub em {{ color: var(--cyan); font-style: normal; }}
+    .badge-row {{ display: flex; gap: 8px; flex-wrap: wrap; margin-top: 2px; }}
     .badge {{
-      font-family: "IBM Plex Mono", monospace;
-      font-size: 0.68rem;
+      font-family: "JetBrains Mono", ui-monospace, monospace;
+      font-size: 11px;
       text-transform: uppercase;
       letter-spacing: 0.08em;
-      padding: 0.3rem 0.55rem;
+      padding: 7px 9px;
       border-radius: 4px;
       border: 1px solid var(--line);
       color: var(--muted);
+      background: rgba(232,244,255,0.025);
     }}
-    .badge.live {{ border-color: rgba(244,184,0,0.45); color: var(--tonka); }}
+    .badge.live {{ border-color: rgba(0,171,253,0.42); color: #34c0ff; }}
     .slide {{
       display: none;
       background: var(--panel);
       border: 1px solid var(--line);
-      border-radius: 12px;
-      padding: 1.75rem 1.5rem 1.5rem;
+      border-radius: 8px;
+      padding: 28px;
       position: relative;
-      box-shadow: 0 16px 48px rgba(0,0,0,0.35);
+      min-height: 230px;
+      box-shadow: 0 18px 52px rgba(0,0,0,0.35), inset 0 1px 0 rgba(255,255,255,0.045);
+      overflow: hidden;
     }}
-    .slide::before, .slide::after {{
+    .slide::before {{
       content: "";
       position: absolute;
-      width: 14px; height: 14px;
-      border-color: var(--tonka);
-      border-style: solid;
-      opacity: 0.55;
+      inset: 0;
+      background:
+        linear-gradient(100deg, rgba(0,171,253,0.08), transparent 44%),
+        radial-gradient(circle at 92% 10%, rgba(124,77,255,0.13), transparent 30%);
+      pointer-events: none;
     }}
-    .slide::before {{ top: 10px; left: 10px; border-width: 2px 0 0 2px; }}
-    .slide::after {{ bottom: 10px; right: 10px; border-width: 0 2px 2px 0; }}
-    .slide.active {{ display: block; animation: fade 0.25s ease; }}
+    .slide::after {{
+      content: "";
+      position: absolute;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      height: 2px;
+      background: linear-gradient(90deg, var(--cyan), var(--violet), transparent 82%);
+      opacity: 0.86;
+    }}
+    .slide.active {{ display: block; animation: fade 0.22s ease; }}
     @keyframes fade {{ from {{ opacity: 0; transform: translateY(6px); }} to {{ opacity: 1; transform: none; }} }}
     .slide-top {{
+      position: relative;
+      z-index: 1;
       display: flex;
       justify-content: space-between;
       align-items: center;
-      margin-bottom: 1rem;
-      gap: 0.75rem;
+      margin-bottom: 26px;
+      gap: 16px;
     }}
     .step-pill {{
-      font-family: "IBM Plex Mono", monospace;
-      font-size: 0.72rem;
-      font-weight: 600;
-      color: var(--bg);
-      background: var(--tonka);
-      padding: 0.25rem 0.55rem;
-      border-radius: 3px;
-      letter-spacing: 0.06em;
+      font-family: "JetBrains Mono", ui-monospace, monospace;
+      font-size: 12px;
+      font-weight: 700;
+      color: #00131f;
+      background: var(--cyan);
+      padding: 7px 10px;
+      border-radius: 4px;
+      letter-spacing: 0.08em;
+      white-space: nowrap;
     }}
     .step-tag {{
-      font-family: "IBM Plex Mono", monospace;
-      font-size: 0.68rem;
+      font-family: "JetBrains Mono", ui-monospace, monospace;
+      font-size: 12px;
       color: var(--cyan);
-      opacity: 0.85;
+      opacity: 0.82;
+      text-align: right;
     }}
     h2 {{
-      font-size: 1.65rem;
-      font-weight: 700;
-      letter-spacing: -0.02em;
-      line-height: 1.2;
-      margin-bottom: 0.85rem;
+      position: relative;
+      z-index: 1;
+      font-size: clamp(28px, 5vw, 42px);
+      font-weight: 800;
+      letter-spacing: 0;
+      line-height: 1.05;
+      margin-bottom: 14px;
+      overflow-wrap: break-word;
     }}
     .body {{
-      font-size: 1rem;
+      position: relative;
+      z-index: 1;
+      max-width: 62ch;
+      font-size: 17px;
       line-height: 1.65;
-      color: #b8c5d9;
+      color: var(--soft);
+      overflow-wrap: break-word;
     }}
     code {{
-      font-family: "IBM Plex Mono", monospace;
+      font-family: "JetBrains Mono", ui-monospace, monospace;
       font-size: 0.86em;
-      background: #161d28;
+      background: #101a26;
       color: var(--cyan);
-      padding: 0.12em 0.38em;
+      padding: 0.14em 0.38em;
       border-radius: 3px;
-      border: 1px solid #243044;
+      border: 1px solid rgba(0,171,253,0.22);
     }}
     .nav {{
       display: flex;
-      gap: 0.75rem;
-      margin-top: 1.25rem;
+      gap: 12px;
+      margin-top: 16px;
       align-items: center;
     }}
     button {{
-      font-family: "Space Grotesk", sans-serif;
-      background: var(--tonka);
-      color: #0a0c10;
-      border: none;
-      font-weight: 700;
-      font-size: 0.9rem;
-      padding: 0.7rem 1.25rem;
+      min-width: 92px;
+      font-family: "Syne", system-ui, sans-serif;
+      background: var(--cyan);
+      color: #00131f;
+      border: 1px solid rgba(0,171,253,0.46);
+      font-weight: 800;
+      font-size: 14px;
+      padding: 11px 16px;
       border-radius: 6px;
       cursor: pointer;
-      transition: transform 0.12s, box-shadow 0.12s;
-      box-shadow: 0 4px 0 var(--tonka-dim);
+      transition: transform 0.12s, border-color 0.12s, background 0.12s, color 0.12s;
     }}
     button:hover:not(:disabled) {{ transform: translateY(-1px); }}
-    button:active:not(:disabled) {{ transform: translateY(2px); box-shadow: 0 1px 0 var(--tonka-dim); }}
-    button#next {{
-      background: transparent;
+    button:active:not(:disabled) {{ transform: translateY(1px); }}
+    button:focus-visible {{ outline: 2px solid var(--violet); outline-offset: 3px; }}
+    button#prev {{
+      background: rgba(232,244,255,0.04);
       color: var(--text);
-      border: 1px solid var(--line);
-      box-shadow: none;
+      border-color: var(--line);
     }}
-    button#next:hover:not(:disabled) {{ border-color: var(--cyan); color: var(--cyan); }}
-    button:disabled {{ opacity: 0.3; cursor: default; box-shadow: none; }}
-    .dots {{ display: flex; gap: 6px; flex: 1; justify-content: center; }}
+    button#next {{
+      background: rgba(232,244,255,0.04);
+      color: var(--text);
+      border-color: var(--line);
+    }}
+    button#next:hover:not(:disabled), button#prev:hover:not(:disabled) {{ border-color: var(--cyan); color: var(--cyan); }}
+    button#next.is-done {{ background: var(--cyan); color: #00131f; border-color: var(--cyan); }}
+    button:disabled {{ opacity: 0.32; cursor: default; }}
+    .dots {{ display: flex; gap: 7px; flex: 1; justify-content: center; }}
     .dot {{
-      width: 7px; height: 7px; border-radius: 1px;
-      background: #2a3448;
-      transform: rotate(45deg);
-      transition: background 0.2s, box-shadow 0.2s;
+      width: 34px;
+      height: 3px;
+      border-radius: 999px;
+      background: rgba(232,244,255,0.12);
+      transition: background 0.2s, box-shadow 0.2s, width 0.2s;
     }}
     .dot.active {{
-      background: var(--tonka);
-      box-shadow: 0 0 8px rgba(244,184,0,0.5);
+      width: 54px;
+      background: var(--cyan);
+      box-shadow: 0 0 12px rgba(0,171,253,0.45);
     }}
     .footer {{
-      margin-top: 1.5rem;
-      padding-top: 1rem;
+      margin-top: 22px;
+      padding-top: 16px;
       border-top: 1px solid var(--line);
-      font-family: "IBM Plex Mono", monospace;
-      font-size: 0.72rem;
+      font-family: "JetBrains Mono", ui-monospace, monospace;
+      font-size: 12px;
       color: var(--muted);
       display: flex;
       justify-content: space-between;
       flex-wrap: wrap;
-      gap: 0.5rem;
+      gap: 10px;
     }}
     a {{ color: var(--cyan); text-decoration: none; }}
     a:hover {{ text-decoration: underline; }}
+    @media (max-width: 560px) {{
+      body {{ padding: 22px 14px 28px; }}
+      .deck {{ max-width: 362px; margin: 0; }}
+      .pack-title {{ font-size: 32px; line-height: 1; }}
+      .slide {{ padding: 22px 18px; min-height: 260px; }}
+      h2 {{ font-size: 26px; line-height: 1.12; }}
+      .body {{ font-size: 16px; }}
+      .slide-top {{ align-items: flex-start; flex-direction: column; gap: 10px; }}
+      .step-tag {{ text-align: left; }}
+      .nav {{ gap: 8px; }}
+      button {{ min-width: 76px; padding-inline: 12px; }}
+      .dot {{ width: 22px; }}
+      .dot.active {{ width: 36px; }}
+    }}
+    @media (prefers-reduced-motion: reduce) {{
+      .slide.active {{ animation: none; }}
+      button, .dot {{ transition: none; }}
+    }}
   </style>
 </head>
 <body>
   <div class="deck">
     <header class="header">
-      {"<img class='wordmark' src='tonka-wordmark.svg' alt='TonkaToyXL' />" if wordmark else "<div class='brand-fallback'><span class='t'>Tonka</span>Toy<span class='xl'>XL</span></div>"}
+      <div class="brand-fallback">OBS Template</div>
       <div class="pack-title">{html.escape(name)}</div>
-      <p class="sub">install walkthrough · <em>free</em> · built on stream</p>
+      <p class="sub">Local install guide. Mac runtime: <em>~/Library/Application Support/OBS-Templates</em>. Health: <em>127.0.0.1:8765</em>.</p>
       <div class="badge-row">
-        <span class="badge live">vibe coding</span>
+        <span class="badge live">browser source</span>
         <span class="badge">obs {html.escape(manifest.get("obsMinVersion", "30+"))}</span>
-        <span class="badge">no signup</span>
+        <span class="badge">local bridge</span>
       </div>
     </header>
     {slides}
     <div class="nav">
-      <button id="prev" disabled>← back</button>
+      <button id="prev" disabled>Back</button>
       <div class="dots" id="dots"></div>
-      <button id="next">next →</button>
+      <button id="next">Next</button>
     </div>
     <footer class="footer">
-      <span>github.com/TonkaToyXL/obs-templates</span>
-      <a href="https://github.com/TonkaToyXL/obs-templates">download more</a>
+      <span>Install stays on this machine. Bridge starts with LaunchAgent on Mac.</span>
+      <a href="https://github.com/TonkaToyXL/obs-templates">Source repo</a>
     </footer>
   </div>
   <script>
@@ -322,10 +409,9 @@ out = f"""<!DOCTYPE html>
       [...dots.children].forEach((d, j) => d.classList.toggle("active", j === i));
       document.getElementById("prev").disabled = i === 0;
       const nxt = document.getElementById("next");
-      nxt.textContent = i === slides.length - 1 ? "done ✓" : "next →";
-      nxt.style.background = i === slides.length - 1 ? "var(--tonka)" : "";
-      nxt.style.color = i === slides.length - 1 ? "#0a0c10" : "";
-      nxt.style.borderColor = i === slides.length - 1 ? "var(--tonka)" : "";
+      const done = i === slides.length - 1;
+      nxt.textContent = done ? "Done" : "Next";
+      nxt.classList.toggle("is-done", done);
     }}
     document.getElementById("prev").onclick = () => show(i - 1);
     document.getElementById("next").onclick = () => show(i < slides.length - 1 ? i + 1 : i);
