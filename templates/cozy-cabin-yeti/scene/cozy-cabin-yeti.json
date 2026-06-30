@@ -9,16 +9,19 @@
             "name": "Vibe Coding"
         }
     ],
-    "name": "Nebula Vibe Desk",
+    "name": "Cozy Cabin Yeti",
     "sources": [
         {
             "prev_ver": 503382018,
             "name": "Display Capture",
-            "uuid": "57d19672-4704-5fab-9fcd-01d3c1e4b63b",
-            "id": "display_capture",
-            "versioned_id": "display_capture",
+            "uuid": "38e6d937-eaec-5cce-a55e-dd8eec770686",
+            "id": "screen_capture",
+            "versioned_id": "screen_capture",
             "settings": {
-                "capture_cursor": true
+                "capture_cursor": true,
+                "show_cursor": true,
+                "capture_mode": "display",
+                "type": "display_capture"
             },
             "mixers": 0,
             "sync": 0,
@@ -35,13 +38,44 @@
             "deinterlace_mode": 0,
             "deinterlace_field_order": 0,
             "monitoring_type": 0,
-            "filters": [],
+            "filters": [
+                {
+                    "prev_ver": 536936450,
+                    "name": "obs-zoom-to-mouse-crop",
+                    "uuid": "fa0e1681-1d11-579a-b85b-c58598e37ba1",
+                    "id": "crop_filter",
+                    "versioned_id": "crop_filter",
+                    "settings": {
+                        "left": 0,
+                        "top": 0,
+                        "cx": 2560,
+                        "cy": 1440,
+                        "relative": false
+                    },
+                    "mixers": 0,
+                    "sync": 0,
+                    "flags": 0,
+                    "volume": 1.0,
+                    "balance": 0.5,
+                    "enabled": true,
+                    "muted": false,
+                    "push-to-mute": false,
+                    "push-to-mute-delay": 0,
+                    "push-to-talk": false,
+                    "push-to-talk-delay": 0,
+                    "hotkeys": {},
+                    "deinterlace_mode": 0,
+                    "deinterlace_field_order": 0,
+                    "monitoring_type": 0,
+                    "private_settings": {}
+                }
+            ],
             "private_settings": {}
         },
         {
             "prev_ver": 503382018,
-            "name": "Cosmic Sky",
-            "uuid": "1364004f-b5c5-5ff3-92f5-9d44532ae58c",
+            "name": "Cabin Overlay",
+            "uuid": "0a4def7f-caf1-559c-bd00-3569f6c0c6a4",
             "id": "browser_source",
             "versioned_id": "browser_source",
             "settings": {
@@ -50,10 +84,10 @@
                 "fps": 30,
                 "shutdown": false,
                 "restart_when_active": true,
-                "css": "body { background-color: rgba(0,0,0,0); margin: 0px auto; overflow: hidden; width: 2560px; height: 1440px; }",
+                "css": "",
                 "reroute_audio": false,
                 "is_local_file": true,
-                "local_file": "{{INSTALL_DIR}}/overlays/cosmic-sky.html"
+                "local_file": "{{INSTALL_DIR}}/overlays/cabin.html"
             },
             "mixers": 0,
             "sync": 0,
@@ -76,7 +110,7 @@
         {
             "prev_ver": 503382018,
             "name": "Privacy Mask",
-            "uuid": "10ea971f-e72d-5e06-a839-98da67c6ab00",
+            "uuid": "c0be9b03-a45f-5f15-9cef-c6e27ab2a771",
             "id": "browser_source",
             "versioned_id": "browser_source",
             "settings": {
@@ -110,63 +144,8 @@
         },
         {
             "prev_ver": 503382018,
-            "name": "Stream Logo",
-            "uuid": "d71cb576-faf8-5f85-9a07-53edbb0f5929",
-            "id": "image_source",
-            "versioned_id": "image_source",
-            "settings": {
-                "file": "{{INSTALL_DIR}}/assets/logo.png",
-                "unload": false
-            },
-            "mixers": 0,
-            "sync": 0,
-            "flags": 0,
-            "volume": 1.0,
-            "balance": 0.5,
-            "enabled": true,
-            "muted": false,
-            "push-to-mute": false,
-            "push-to-mute-delay": 0,
-            "push-to-talk": false,
-            "push-to-talk-delay": 0,
-            "hotkeys": {},
-            "deinterlace_mode": 0,
-            "deinterlace_field_order": 0,
-            "monitoring_type": 0,
-            "private_settings": {},
-            "filters": [
-                {
-                    "prev_ver": 503382018,
-                    "name": "Logo Opacity",
-                    "uuid": "cbac89f3-2878-58a4-b207-2d14a6e2e429",
-                    "id": "mask_filter",
-                    "versioned_id": "mask_filter",
-                    "settings": {
-                        "opacity": 0.52
-                    },
-                    "mixers": 0,
-                    "sync": 0,
-                    "flags": 0,
-                    "volume": 1.0,
-                    "balance": 0.5,
-                    "enabled": true,
-                    "muted": false,
-                    "push-to-mute": false,
-                    "push-to-mute-delay": 0,
-                    "push-to-talk": false,
-                    "push-to-talk-delay": 0,
-                    "hotkeys": {},
-                    "deinterlace_mode": 0,
-                    "deinterlace_field_order": 0,
-                    "monitoring_type": 0,
-                    "private_settings": {}
-                }
-            ]
-        },
-        {
-            "prev_ver": 503382018,
-            "name": "Brand Bar (Live)",
-            "uuid": "e21cc718-16ba-5288-9be4-c5e464a27687",
+            "name": "Cabin Brand Bar",
+            "uuid": "e3b77ed2-6250-59e0-ab62-e59ce7631365",
             "id": "browser_source",
             "versioned_id": "browser_source",
             "settings": {
@@ -177,8 +156,8 @@
                 "restart_when_active": true,
                 "css": "",
                 "reroute_audio": false,
-                "is_local_file": true,
-                "local_file": "{{INSTALL_DIR}}/overlays/brandbar.html?mode=live"
+                "is_local_file": false,
+                "url": "http://127.0.0.1:8766/overlays/brandbar.html?mode=live"
             },
             "mixers": 0,
             "sync": 0,
@@ -200,8 +179,8 @@
         },
         {
             "prev_ver": 503382018,
-            "name": "Holographic Orb",
-            "uuid": "bd693327-60a0-59c8-905a-ee329f3b8202",
+            "name": "Yeti Voice Orb",
+            "uuid": "c077e8d0-9b1a-5af0-97bc-b18b0f456f6c",
             "id": "browser_source",
             "versioned_id": "browser_source",
             "settings": {
@@ -213,7 +192,7 @@
                 "css": "",
                 "reroute_audio": false,
                 "is_local_file": false,
-                "url": "http://127.0.0.1:18765/overlays/orb.html"
+                "url": "http://127.0.0.1:8766/overlays/orb.html"
             },
             "mixers": 0,
             "sync": 0,
@@ -235,8 +214,8 @@
         },
         {
             "prev_ver": 503382018,
-            "name": "Soon Backdrop",
-            "uuid": "eb83affd-2b07-5210-ad32-d34fc8ade32c",
+            "name": "Cabin Starting Soon",
+            "uuid": "4b22f6b6-6eb8-5b1f-b150-0edbd342122d",
             "id": "browser_source",
             "versioned_id": "browser_source",
             "settings": {
@@ -270,8 +249,8 @@
         },
         {
             "prev_ver": 503382018,
-            "name": "Brand Bar (Soon)",
-            "uuid": "a43079a3-7bd6-5f8d-9094-5eeaaf02d5ff",
+            "name": "Cabin Brand Bar (Soon)",
+            "uuid": "d55abd34-bf39-5432-bf82-b72ad6d25cf1",
             "id": "browser_source",
             "versioned_id": "browser_source",
             "settings": {
@@ -282,8 +261,8 @@
                 "restart_when_active": true,
                 "css": "",
                 "reroute_audio": false,
-                "is_local_file": true,
-                "local_file": "{{INSTALL_DIR}}/overlays/brandbar.html?mode=soon"
+                "is_local_file": false,
+                "url": "http://127.0.0.1:8766/overlays/brandbar.html?mode=soon"
             },
             "mixers": 0,
             "sync": 0,
@@ -305,15 +284,47 @@
         },
         {
             "prev_ver": 503382018,
+            "name": "Mic",
+            "uuid": "62f42434-5681-5bca-95ce-31b2d91feaa6",
+            "id": "coreaudio_input_capture",
+            "versioned_id": "coreaudio_input_capture",
+            "settings": {
+                "device_id": "default"
+            },
+            "mixers": 255,
+            "sync": 0,
+            "flags": 0,
+            "volume": 1.0,
+            "balance": 0.5,
+            "enabled": true,
+            "muted": false,
+            "push-to-mute": false,
+            "push-to-mute-delay": 0,
+            "push-to-talk": false,
+            "push-to-talk-delay": 0,
+            "hotkeys": {
+                "libobs.mute": [],
+                "libobs.unmute": [],
+                "libobs.push-to-mute": [],
+                "libobs.push-to-talk": []
+            },
+            "deinterlace_mode": 0,
+            "deinterlace_field_order": 0,
+            "monitoring_type": 0,
+            "filters": [],
+            "private_settings": {}
+        },
+        {
+            "prev_ver": 503382018,
             "name": "Vibe Coding",
-            "uuid": "a8d8fbcb-da4b-59c9-8ccd-81a0b71cf403",
+            "uuid": "0431c041-2f05-563f-9323-47ff8b0b538d",
             "id": "scene",
             "versioned_id": "scene",
             "settings": {
                 "items": [
                     {
                         "name": "Display Capture",
-                        "source_uuid": "57d19672-4704-5fab-9fcd-01d3c1e4b63b",
+                        "source_uuid": "38e6d937-eaec-5cce-a55e-dd8eec770686",
                         "visible": true,
                         "locked": false,
                         "rot": 0.0,
@@ -367,8 +378,8 @@
                         "private_settings": {}
                     },
                     {
-                        "name": "Cosmic Sky",
-                        "source_uuid": "1364004f-b5c5-5ff3-92f5-9d44532ae58c",
+                        "name": "Cabin Overlay",
+                        "source_uuid": "0a4def7f-caf1-559c-bd00-3569f6c0c6a4",
                         "visible": true,
                         "locked": false,
                         "rot": 0.0,
@@ -423,7 +434,7 @@
                     },
                     {
                         "name": "Privacy Mask",
-                        "source_uuid": "10ea971f-e72d-5e06-a839-98da67c6ab00",
+                        "source_uuid": "c0be9b03-a45f-5f15-9cef-c6e27ab2a771",
                         "visible": false,
                         "locked": false,
                         "rot": 0.0,
@@ -477,8 +488,8 @@
                         "private_settings": {}
                     },
                     {
-                        "name": "Stream Logo",
-                        "source_uuid": "d71cb576-faf8-5f85-9a07-53edbb0f5929",
+                        "name": "Cabin Brand Bar",
+                        "source_uuid": "e3b77ed2-6250-59e0-ab62-e59ce7631365",
                         "visible": true,
                         "locked": false,
                         "rot": 0.0,
@@ -497,20 +508,20 @@
                         "id": 4,
                         "group_item_backup": false,
                         "pos": {
-                            "x": 48.0,
-                            "y": 48.0
+                            "x": 38.0,
+                            "y": 1304.0
                         },
                         "pos_rel": {
                             "x": 0.0,
                             "y": 0.0
                         },
                         "scale": {
-                            "x": 0.33,
-                            "y": 0.33
+                            "x": 0.926,
+                            "y": 0.926
                         },
                         "scale_rel": {
-                            "x": 0.33,
-                            "y": 0.33
+                            "x": 0.926,
+                            "y": 0.926
                         },
                         "bounds": {
                             "x": 0.0,
@@ -532,8 +543,8 @@
                         "private_settings": {}
                     },
                     {
-                        "name": "Brand Bar (Live)",
-                        "source_uuid": "e21cc718-16ba-5288-9be4-c5e464a27687",
+                        "name": "Yeti Voice Orb",
+                        "source_uuid": "c077e8d0-9b1a-5af0-97bc-b18b0f456f6c",
                         "visible": true,
                         "locked": false,
                         "rot": 0.0,
@@ -553,19 +564,19 @@
                         "group_item_backup": false,
                         "pos": {
                             "x": 0.0,
-                            "y": 1305.0
+                            "y": 0.0
                         },
                         "pos_rel": {
                             "x": 0.0,
                             "y": 0.0
                         },
                         "scale": {
-                            "x": 0.926,
-                            "y": 0.926
+                            "x": 1.0,
+                            "y": 1.0
                         },
                         "scale_rel": {
-                            "x": 0.926,
-                            "y": 0.926
+                            "x": 1.0,
+                            "y": 1.0
                         },
                         "bounds": {
                             "x": 0.0,
@@ -587,8 +598,8 @@
                         "private_settings": {}
                     },
                     {
-                        "name": "Holographic Orb",
-                        "source_uuid": "bd693327-60a0-59c8-905a-ee329f3b8202",
+                        "name": "Mic",
+                        "source_uuid": "62f42434-5681-5bca-95ce-31b2d91feaa6",
                         "visible": true,
                         "locked": false,
                         "rot": 0.0,
@@ -661,20 +672,20 @@
             "deinterlace_field_order": 0,
             "monitoring_type": 0,
             "filters": [],
-            "canvas_uuid": "6c69626f-6273-4c00-9d88-c5136d61696e",
-            "private_settings": {}
+            "private_settings": {},
+            "canvas_uuid": "6c69626f-6273-4c00-9d88-c5136d61696e"
         },
         {
             "prev_ver": 503382018,
             "name": "Starting Soon",
-            "uuid": "dc2f8135-8453-5032-a471-262b97a915f9",
+            "uuid": "8bafec2c-9f15-5952-8183-725bd51e52e1",
             "id": "scene",
             "versioned_id": "scene",
             "settings": {
                 "items": [
                     {
                         "name": "Display Capture",
-                        "source_uuid": "57d19672-4704-5fab-9fcd-01d3c1e4b63b",
+                        "source_uuid": "38e6d937-eaec-5cce-a55e-dd8eec770686",
                         "visible": true,
                         "locked": false,
                         "rot": 0.0,
@@ -728,8 +739,8 @@
                         "private_settings": {}
                     },
                     {
-                        "name": "Soon Backdrop",
-                        "source_uuid": "eb83affd-2b07-5210-ad32-d34fc8ade32c",
+                        "name": "Cabin Starting Soon",
+                        "source_uuid": "4b22f6b6-6eb8-5b1f-b150-0edbd342122d",
                         "visible": true,
                         "locked": false,
                         "rot": 0.0,
@@ -783,8 +794,8 @@
                         "private_settings": {}
                     },
                     {
-                        "name": "Stream Logo",
-                        "source_uuid": "d71cb576-faf8-5f85-9a07-53edbb0f5929",
+                        "name": "Yeti Voice Orb",
+                        "source_uuid": "c077e8d0-9b1a-5af0-97bc-b18b0f456f6c",
                         "visible": true,
                         "locked": false,
                         "rot": 0.0,
@@ -803,20 +814,20 @@
                         "id": 3,
                         "group_item_backup": false,
                         "pos": {
-                            "x": 48.0,
-                            "y": 48.0
+                            "x": 0.0,
+                            "y": 0.0
                         },
                         "pos_rel": {
                             "x": 0.0,
                             "y": 0.0
                         },
                         "scale": {
-                            "x": 0.33,
-                            "y": 0.33
+                            "x": 1.0,
+                            "y": 1.0
                         },
                         "scale_rel": {
-                            "x": 0.33,
-                            "y": 0.33
+                            "x": 1.0,
+                            "y": 1.0
                         },
                         "bounds": {
                             "x": 0.0,
@@ -838,8 +849,8 @@
                         "private_settings": {}
                     },
                     {
-                        "name": "Holographic Orb",
-                        "source_uuid": "bd693327-60a0-59c8-905a-ee329f3b8202",
+                        "name": "Cabin Brand Bar (Soon)",
+                        "source_uuid": "d55abd34-bf39-5432-bf82-b72ad6d25cf1",
                         "visible": true,
                         "locked": false,
                         "rot": 0.0,
@@ -858,20 +869,20 @@
                         "id": 4,
                         "group_item_backup": false,
                         "pos": {
-                            "x": 0.0,
-                            "y": 0.0
+                            "x": 38.0,
+                            "y": 1304.0
                         },
                         "pos_rel": {
                             "x": 0.0,
                             "y": 0.0
                         },
                         "scale": {
-                            "x": 1.0,
-                            "y": 1.0
+                            "x": 0.926,
+                            "y": 0.926
                         },
                         "scale_rel": {
-                            "x": 1.0,
-                            "y": 1.0
+                            "x": 0.926,
+                            "y": 0.926
                         },
                         "bounds": {
                             "x": 0.0,
@@ -893,8 +904,8 @@
                         "private_settings": {}
                     },
                     {
-                        "name": "Brand Bar (Soon)",
-                        "source_uuid": "a43079a3-7bd6-5f8d-9094-5eeaaf02d5ff",
+                        "name": "Mic",
+                        "source_uuid": "62f42434-5681-5bca-95ce-31b2d91feaa6",
                         "visible": true,
                         "locked": false,
                         "rot": 0.0,
@@ -914,19 +925,19 @@
                         "group_item_backup": false,
                         "pos": {
                             "x": 0.0,
-                            "y": 1305.0
+                            "y": 0.0
                         },
                         "pos_rel": {
                             "x": 0.0,
                             "y": 0.0
                         },
                         "scale": {
-                            "x": 0.926,
-                            "y": 0.926
+                            "x": 1.0,
+                            "y": 1.0
                         },
                         "scale_rel": {
-                            "x": 0.926,
-                            "y": 0.926
+                            "x": 1.0,
+                            "y": 1.0
                         },
                         "bounds": {
                             "x": 0.0,
@@ -967,8 +978,8 @@
             "deinterlace_field_order": 0,
             "monitoring_type": 0,
             "filters": [],
-            "canvas_uuid": "6c69626f-6273-4c00-9d88-c5136d61696e",
-            "private_settings": {}
+            "private_settings": {},
+            "canvas_uuid": "6c69626f-6273-4c00-9d88-c5136d61696e"
         }
     ],
     "groups": [],

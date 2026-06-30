@@ -166,10 +166,11 @@
   var C=window.BRANDING||{};
   var onHttp=(location.protocol==="http:"||location.protocol==="https:");
   var LEVEL_SRCS=onHttp
-    ?["/level.json","level-live.json","http://127.0.0.1:8765/level.json"]
-    :["level-live.json","http://127.0.0.1:8765/level.json"];
+    ?["/level.json","level-live.json","http://127.0.0.1:18765/level.json"]
+    :["level-live.json","http://127.0.0.1:18765/level.json"];
   var levelSrc=0, POLL_MS=33, RETRY_MS=300;
   var ATTACK=0.35, RELEASE=0.1, MOUTH_ATTACK=0.78, MOUTH_RELEASE=0.12, IDLE_THRESHOLD=0.01;
+  var SPEAK_ON=0.045, SPEAK_OFF=0.02;
   function cfgNumber(name,fallback,min,max){
     var v=Number(C[name]);
     if(!isFinite(v)) v=fallback;
@@ -207,7 +208,7 @@
   var nextBlink=0, wasIdle=true;
   var expr="idle", starDots=[], bolts=[];
   var wasSpeaking=false, speakAccent=0, nextAccent=0, microSmile=0, nextDoubleBlink=0;
-  var pollTimer=null, bridgeOnline=false;
+  var pollTimer=null, bridgeOnline=false, voiceActive=false;
 
   function rand(a,b){return a+Math.random()*(b-a);}
   function clamp(v,lo,hi){return v<lo?lo:v>hi?hi:v;}
@@ -268,12 +269,16 @@
       if(!r.ok) throw 0;
       return r.json();
     }).then(function(d){
-      var t=clamp((typeof d.level==="number"?d.level:0)*VOICE_SENSITIVITY,0,1);
-      vel=t-prevTarget; prevTarget=target; target=t;
+      var rawLevel=typeof d.level==="number"?d.level:0;
+      var rawTarget=typeof d.target==="number"?d.target:rawLevel;
+      var status=String(d.status||"");
+      voiceActive=status ? status==="speaking" : (rawTarget>=SPEAK_ON || (voiceActive&&rawTarget>=SPEAK_OFF));
+      var nextTarget=voiceActive?clamp(rawLevel*VOICE_SENSITIVITY,0,1):0;
+      vel=nextTarget-target; prevTarget=target; target=nextTarget;
       bridgeOnline=true;
       schedulePoll(POLL_MS);
     }).catch(function(){
-      vel=0; target=0;
+      vel=0; target=0; voiceActive=false;
       bridgeOnline=false;
       levelSrc=(levelSrc+1)%LEVEL_SRCS.length;
       schedulePoll(RETRY_MS);
@@ -329,7 +334,7 @@
     eyeL.classList.remove("wide","squint","emphasis"); eyeR.classList.remove("wide","squint","emphasis");
     var e=name;
     if(speaking) e=expr.indexOf("speaking")===0?expr:"speaking";
-    if(g>0.5&&Math.abs(vel)>0.05) e="surprised";
+    if(speaking&&g>0.5&&Math.abs(vel)>0.05) e="surprised";
 
     var wob=Math.sin(performance.now()*0.011)*0.08*m;
     if(e==="speaking-loud"){
@@ -420,13 +425,17 @@
 
     applyExpression(expr,g,m,speaking);
 
-    var syll=Math.abs(vel)*12;
-    var vowPhase=now*0.034+syll*2.1;
-    var vowel=0.35+Math.sin(vowPhase)*0.22+g*0.32;
-    var open=clamp(m*1.2+syll*0.65+burst*0.28+g*0.12,0,1);
-    var width=clamp(0.35+m*0.7+Math.cos(vowPhase)*0.14+Math.abs(Math.sin(now*0.042+syll*3))*0.2,0.18,1);
-    var smile=speaking?microSmile*(open<0.45?1:0.35):0;
-    setMouth(open,width,vowel,smile);
+    if(speaking){
+      var syll=Math.abs(vel)*12;
+      var vowPhase=now*0.034+syll*2.1;
+      var vowel=0.35+Math.sin(vowPhase)*0.22+g*0.32;
+      var open=clamp(m*1.2+syll*0.65+burst*0.28+g*0.12,0,1);
+      var width=clamp(0.35+m*0.7+Math.cos(vowPhase)*0.14+Math.abs(Math.sin(now*0.042+syll*3))*0.2,0.18,1);
+      var smile=microSmile*(open<0.45?1:0.35);
+      setMouth(open,width,vowel,smile);
+    } else {
+      setMouth(0,0.35,0.35,0);
+    }
   }
 
   function spawnBolt(e){
@@ -457,8 +466,8 @@
     if(!now) now=performance.now();
     level+=(target-level)*(target>level?ATTACK:RELEASE);
     mouthLevel+=(target-mouthLevel)*(target>mouthLevel?MOUTH_ATTACK:MOUTH_RELEASE);
-    burst+=(Math.abs(vel)*4-burst)*0.35;
-    var speaking=level>=IDLE_THRESHOLD||mouthLevel>=IDLE_THRESHOLD;
+    burst+=((voiceActive?Math.abs(vel)*4:0)-burst)*0.35;
+    var speaking=voiceActive&&(level>=IDLE_THRESHOLD||mouthLevel>=IDLE_THRESHOLD);
     if(speaking!==wasIdle){orb.classList.toggle("idle",!speaking);wasIdle=speaking;}
     var g=level, m=mouthLevel;
     var sc=1+g*0.022+burst*0.008;

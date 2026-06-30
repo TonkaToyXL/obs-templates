@@ -5,7 +5,7 @@ Download from [TonkaToyXL/obs-templates](https://github.com/TonkaToyXL/obs-templ
 
 ## Preview
 
-**Current preview: v2.1.0**
+**Current preview: v2.1.1**
 
 ![Nebula Vibe Coding scene preview](docs/previews/vibe-coding.webp)
 
@@ -36,7 +36,7 @@ On Mac, installs the runtime to `~/Library/Application Support/OBS-Templates/neb
 
 ## Customize (your brand)
 
-Open **`http://127.0.0.1:8765/config.html`** after install, or edit **`branding.user.json`** (copy from `branding.user.example.json`):
+Open **`http://127.0.0.1:18765/config.html`** after install, or edit **`branding.user.json`** (copy from `branding.user.example.json`):
 
 | Key | What it does |
 |-----|----------------|
@@ -58,9 +58,9 @@ Config page saves update `branding.user.json` and `overlays/branding.js`. For ma
 
 ## Mic bridge
 
-The orb reads levels from `http://127.0.0.1:8765/level.json`.
-The local health panel is `http://127.0.0.1:8765/health.html`.
-The local config panel is `http://127.0.0.1:8765/config.html`.
+The orb reads levels from `http://127.0.0.1:18765/level.json`.
+The local health panel is `http://127.0.0.1:18765/health.html`.
+The local config panel is `http://127.0.0.1:18765/config.html`.
 
 ```bash
 cd ~/Library/Application\ Support/OBS-Templates/nebula-vibe-desk

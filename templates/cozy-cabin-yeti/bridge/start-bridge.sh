@@ -3,7 +3,7 @@
 set -euo pipefail
 ROOT="$(cd "$(dirname "$0")/.." && pwd)"
 cd "$ROOT"
-export OBS_BRIDGE_PORT="${OBS_BRIDGE_PORT:-18765}"
+export OBS_BRIDGE_PORT="${OBS_BRIDGE_PORT:-8766}"
 export OBS_WS_URL="${OBS_WS_URL:-ws://127.0.0.1:4455}"
 
 if [[ -x /opt/homebrew/bin/python3 ]]; then

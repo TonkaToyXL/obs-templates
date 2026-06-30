@@ -4,7 +4,7 @@
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1" />
 <link rel="icon" href="data:," />
-<title>Nebula Bridge Health</title>
+<title>Cabin Bridge Health</title>
 <style>
   @font-face {
     font-family: "Syne";
@@ -21,14 +21,14 @@
     font-display: swap;
   }
   :root {
-    --bg: #05080d;
-    --panel: #0d141d;
-    --panel2: #101a25;
-    --line: rgba(232,244,255,0.11);
-    --text: #e8f4ff;
-    --muted: #8aa0b8;
-    --cyan: #00abfd;
-    --violet: #7c4dff;
+    --bg: #120b09;
+    --panel: #21130e;
+    --panel2: #2a1811;
+    --line: rgba(255,238,210,0.13);
+    --text: #fff6e8;
+    --muted: #bfae9a;
+    --cyan: #8ed7ff;
+    --violet: #f6a643;
     --green: #5dffbd;
     --amber: #ffd166;
     --red: #ff6b7a;
@@ -39,8 +39,8 @@
     font-family: "Syne", system-ui, sans-serif;
     padding: 28px;
     background:
-      radial-gradient(ellipse 72% 48% at 12% 0%, rgba(0,171,253,0.12), transparent 58%),
-      radial-gradient(ellipse 60% 44% at 96% 100%, rgba(124,77,255,0.14), transparent 54%),
+      radial-gradient(ellipse 72% 48% at 12% 0%, rgba(246,166,67,0.12), transparent 58%),
+      radial-gradient(ellipse 60% 44% at 96% 100%, rgba(142,215,255,0.13), transparent 54%),
       var(--bg);
   }
   .shell { width: min(920px, 100%); margin: 0 auto; }
@@ -119,7 +119,7 @@
 <main class="shell">
   <header>
     <div>
-      <h1>Nebula Bridge</h1>
+      <h1>Cabin Bridge</h1>
       <p class="sub">Local orb diagnostics for OBS, mic meter, and overlay service.</p>
     </div>
     <span class="pill warn" id="overall">Checking</span>
@@ -152,13 +152,13 @@
     </article>
     <article class="card wide">
       <div class="label">Runtime</div>
-      <div class="value" id="port">Port 18765</div>
+      <div class="value" id="port">Port 8766</div>
       <div class="small" id="root">root loading</div>
     </article>
   </section>
   <div class="error" id="error"></div>
   <footer>
-    Orb source: http://127.0.0.1:18765/overlays/orb.html |
+    Orb source: http://127.0.0.1:8766/overlays/orb.html |
     <a href="/config.html">Config</a>
   </footer>
 </main>
@@ -197,7 +197,7 @@
     meter.textContent=d.meter_seen?"Live":"Waiting";
     status.textContent=d.status||"unknown";
     peak.textContent="peak "+(typeof d.peak_db==="number"?d.peak_db.toFixed(1):"-100")+" dB";
-    port.textContent="Port "+(d.port||18765);
+    port.textContent="Port "+(d.port||8766);
     root.textContent=d.root||"runtime unavailable";
     var level=Math.max(0, Math.min(1, Number(d.level)||0));
     bar.style.width=(level*100).toFixed(1)+"%";

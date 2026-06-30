@@ -37,13 +37,20 @@ package_one() {
   mkdir -p "$DIST"
   rm -f "$tmp"
 
-  if [[ "$id" == "nebula-vibe-desk" ]]; then
+  local builder="$ROOT/scripts/build-${id}-scene.py"
+  if [[ -f "$builder" ]]; then
+    python3 "$builder"
+  elif [[ "$id" == "nebula-vibe-desk" ]]; then
     python3 "$ROOT/scripts/build-scene.py"
   fi
   "$ROOT/scripts/generate-installers.sh" >/dev/null
 
   # Zip contents at archive root (not nested in templates/id/)
-  (cd "$dir" && zip -qr "$tmp" . -x "*.DS_Store")
+  (cd "$dir" && zip -qr "$tmp" . \
+    -x "*.DS_Store" \
+    -x "__pycache__/*" \
+    -x "*/__pycache__/*" \
+    -x "*.pyc")
 
   shopt -s nullglob
   local old_zip

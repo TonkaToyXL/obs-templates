@@ -3,7 +3,7 @@
 <plist version="1.0">
 <dict>
   <key>Label</key>
-  <string>com.nebula-vibe-desk.bridge</string>
+  <string>com.cozy-cabin-yeti.bridge</string>
   <key>ProgramArguments</key>
   <array>
     <string>/bin/bash</string>
@@ -26,7 +26,7 @@
     <key>PATH</key>
     <string>/opt/homebrew/bin:/usr/local/bin:/usr/bin:/bin</string>
     <key>OBS_BRIDGE_PORT</key>
-    <string>18765</string>
+    <string>8766</string>
     <key>OBS_MIC_INPUT</key>
     <string>REPLACE_WITH_MIC_INPUT</string>
   </dict>

@@ -32,7 +32,7 @@ BRANDING_USER_FILE = ROOT / "branding.user.json"
 BRANDING_JS_FILE = ROOT / "overlays" / "branding.js"
 MAX_LOG_BYTES = 256_000
 STARTED_AT = time.time()
-PORT = int(os.environ.get("OBS_BRIDGE_PORT", os.environ.get("TONKA_ORB_PORT", "18765")))
+PORT = int(os.environ.get("OBS_BRIDGE_PORT", os.environ.get("TONKA_ORB_PORT", "8766")))
 WS_URL = os.environ.get("OBS_WS_URL", os.environ.get("TONKA_OBS_WS", "ws://127.0.0.1:4455"))
 WS_PASS = os.environ.get("OBS_WS_PASS", os.environ.get("TONKA_OBS_WS_PASS", ""))
 
@@ -69,8 +69,6 @@ ORB_POSITIONS = ("lowerRight", "rightEdge", "centerRight", "lowerCenter")
 CONFIG_SCHEMA = {
     "brandName": {"type": "text", "maxLength": 48},
     "tagLine": {"type": "text", "maxLength": 72},
-    "logoFile": {"type": "path", "maxLength": 160},
-    "logoOpacity": {"type": "number", "min": 0, "max": 1},
     "accentCyan": {"type": "color"},
     "accentViolet": {"type": "color"},
     "micInputName": {"type": "text", "maxLength": 120},
@@ -89,7 +87,6 @@ state = {
     "input_found": False,
     "meter_seen": False,
     "last_error": "",
-    "port": PORT,
     "status": "obs_offline",
 }
 
@@ -323,10 +320,7 @@ class BridgeHandler(SimpleHTTPRequestHandler):
         self.send_header("Content-Type", "application/json")
         self.send_header("Content-Length", str(len(body)))
         self.end_headers()
-        try:
-            self.wfile.write(body)
-        except (BrokenPipeError, ConnectionResetError):
-            pass
+        self.wfile.write(body)
 
     def local_origin_allowed(self) -> bool:
         origin = self.headers.get("Origin", "")

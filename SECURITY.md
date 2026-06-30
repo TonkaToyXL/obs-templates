@@ -6,7 +6,7 @@ Public, free OBS template files only — overlays, assets, and install docs. No 
 
 ## User-local secrets (never commit these)
 
-- OBS WebSocket passwords — set `OBS_WS_PASS` in the bridge environment (see `bridge/start-bridge.sh`). The installer never reads or copies your password from OBS config.
+- OBS WebSocket passwords — set `OBS_WS_PASS` in the bridge environment if you prefer. The bridge can also read OBS's local WebSocket config at runtime when auth is enabled, but it does not log, copy, or commit the password.
 - Mic names, stream keys, and scene paths on a user's machine stay on their machine.
 
 ## What the installer changes (safe)
@@ -16,7 +16,7 @@ Public, free OBS template files only — overlays, assets, and install docs. No 
 | Copy template files | `~/Documents/OBS-Templates/<name>/` |
 | Register scene | OBS `basic/scenes/<name>.json` |
 | Enable WebSocket | Local only (`127.0.0.1:4455`) — only if disabled; backs up config first |
-| Disable WebSocket auth | **Only** if no password is set yet |
+| Preserve WebSocket auth | Uses the existing local password when OBS requires auth; does not disable auth |
 
 No network access. No telemetry. No stream keys.
 

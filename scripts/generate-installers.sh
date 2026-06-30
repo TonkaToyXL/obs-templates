@@ -8,10 +8,11 @@ INSTALLER_PY="$ROOT/scripts/installer.py"
 
 write_mac_launcher() {
   local dir="$1"
-  cat > "$dir/install.command" <<'EOF'
+  local name="$2"
+  cat > "$dir/install.command" <<EOF
 #!/bin/bash
-cd "$(dirname "$0")"
-echo "Installing Nebula Vibe Desk..."
+cd "\$(dirname "\$0")"
+echo "Installing $name..."
 if command -v python3 >/dev/null 2>&1; then
   python3 install.py
 else
@@ -26,10 +27,11 @@ EOF
 
 write_windows_launcher() {
   local dir="$1"
-  cat > "$dir/Install.bat" <<'EOF'
+  local name="$2"
+  cat > "$dir/Install.bat" <<EOF
 @echo off
 cd /d "%~dp0"
-echo Installing Nebula Vibe Desk...
+echo Installing $name...
 where py >nul 2>nul && (py -3 install.py) || (where python >nul 2>nul && (python install.py) || (
   echo Python 3 required. See README.md for manual install.
   pause
@@ -49,22 +51,34 @@ from pathlib import Path
 
 dir_path = Path(sys.argv[1])
 manifest = json.loads((dir_path / "manifest.json").read_text())
+branding_path = dir_path / "branding.json"
+branding = json.loads(branding_path.read_text()) if branding_path.exists() else {}
 name = manifest["name"]
 install_type = manifest.get("installType", "overlay")
+port = int(branding.get("bridgePort", 8765) or 8765)
+origin = f"http://127.0.0.1:{port}"
+has_logo_asset = (dir_path / "assets" / "logo.png").exists()
+custom_body = (
+    f"Use <code>{origin}/config.html</code>, or replace <code>assets/logo.png</code> "
+    "and edit <code>branding.user.json</code> (copy from <code>branding.user.example.json</code>)."
+    if has_logo_asset
+    else f"Use <code>{origin}/config.html</code>, or edit <code>branding.user.json</code> "
+    "(copy from <code>branding.user.example.json</code>)."
+)
 
 steps_overlay = [
     ("Download & unzip", "Get the zip from GitHub. Unzip anywhere.", "one click on the repo"),
     ("Double-click install", "Mac: <code>install.command</code><br>Windows: <code>Install.bat</code>", "installs runtime + opens OBS"),
     ("Pick the scene", "OBS > <strong>Scene Collection</strong> > your template > scene <strong>Vibe Coding</strong>.", "one menu pick"),
-    ("Check health", "Open <code>http://127.0.0.1:8765/health.html</code> to verify the bridge, OBS, mic, and meter. Open <code>http://127.0.0.1:8765/config.html</code> for local tuning.", "local diagnostics"),
+    ("Check health", f"Open <code>{origin}/health.html</code> to verify the bridge, OBS, mic, and meter. Open <code>{origin}/config.html</code> for local tuning.", "local diagnostics"),
     ("Talk", "Mic reactive orb lights up when you speak. WebSocket stays local to this machine.", "127.0.0.1 only"),
 ]
 steps_scene = [
     ("Download & unzip", "Get the zip from GitHub.", "free / no account"),
     ("Double-click install", "Mac: <code>install.command</code> / Windows: <code>Install.bat</code>", "installs runtime + opens OBS"),
     ("Pick the scene", f"OBS > <strong>Scene Collection</strong> > <strong>{html.escape(name)}</strong> > <strong>Vibe Coding</strong>.", "orb source is ready"),
-    ("Check health", "Open <code>http://127.0.0.1:8765/health.html</code> to verify the bridge, OBS, mic, and meter. Open <code>http://127.0.0.1:8765/config.html</code> for local tuning.", "local diagnostics"),
-    ("Customize your brand", "Use <code>http://127.0.0.1:8765/config.html</code>, or replace <code>assets/logo.png</code> and edit <code>branding.user.json</code> (copy from <code>branding.user.example.json</code>).", "optional"),
+    ("Check health", f"Open <code>{origin}/health.html</code> to verify the bridge, OBS, mic, and meter. Open <code>{origin}/config.html</code> for local tuning.", "local diagnostics"),
+    ("Customize your brand", custom_body, "optional"),
 ]
 steps = steps_scene if install_type == "scene-collection" else steps_overlay
 
@@ -376,7 +390,7 @@ out = f"""<!DOCTYPE html>
     <header class="header">
       <div class="brand-fallback">OBS Template</div>
       <div class="pack-title">{html.escape(name)}</div>
-      <p class="sub">Local install guide. Mac runtime: <em>~/Library/Application Support/OBS-Templates</em>. Health/config: <em>127.0.0.1:8765</em>.</p>
+      <p class="sub">Local install guide. Mac runtime: <em>~/Library/Application Support/OBS-Templates</em>. Health/config: <em>127.0.0.1:{port}</em>.</p>
       <div class="badge-row">
         <span class="badge live">browser source</span>
         <span class="badge">obs {html.escape(manifest.get("obsMinVersion", "30+"))}</span>
@@ -438,8 +452,13 @@ for dir in "$TEMPLATES"/*/; do
 
   cp "$INSTALLER_PY" "$dir/install.py"
   mkdir -p "$dir/docs"
-  write_mac_launcher "$dir"
-  write_windows_launcher "$dir"
+  name="$(python3 - "$dir/manifest.json" <<'PY'
+import json, sys
+print(json.load(open(sys.argv[1], encoding="utf-8"))["name"])
+PY
+)"
+  write_mac_launcher "$dir" "$name"
+  write_windows_launcher "$dir" "$name"
   generate_guide "$dir" "$id"
   echo "installers: $id"
 done
