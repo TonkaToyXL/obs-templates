@@ -143,6 +143,9 @@ def scene_item(
     bounds_type: int = 0,
     visible: bool = True,
 ) -> dict:
+    half_height = H / 2
+    pos_rel = ((pos[0] - W / 2) / half_height, (pos[1] - H / 2) / half_height)
+    bounds_rel = (bounds[0] / half_height, bounds[1] / half_height) if bounds else (0.0, 0.0)
     return {
         "name": name,
         "source_uuid": source_uuid,
@@ -161,11 +164,11 @@ def scene_item(
         "id": item_id,
         "group_item_backup": False,
         "pos": {"x": float(pos[0]), "y": float(pos[1])},
-        "pos_rel": {"x": 0.0, "y": 0.0},
+        "pos_rel": {"x": float(pos_rel[0]), "y": float(pos_rel[1])},
         "scale": {"x": float(scale[0]), "y": float(scale[1])},
         "scale_rel": {"x": float(scale[0]), "y": float(scale[1])},
         "bounds": {"x": float(bounds[0]) if bounds else 0.0, "y": float(bounds[1]) if bounds else 0.0},
-        "bounds_rel": {"x": float(bounds[0]) if bounds else 0.0, "y": float(bounds[1]) if bounds else 0.0},
+        "bounds_rel": {"x": float(bounds_rel[0]), "y": float(bounds_rel[1])},
         "scale_filter": "disable",
         "blend_method": "default",
         "blend_type": "normal",

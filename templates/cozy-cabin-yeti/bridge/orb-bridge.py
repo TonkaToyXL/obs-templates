@@ -516,12 +516,20 @@ def main() -> None:
     threading.Thread(target=run_http, daemon=True).start()
     loop = asyncio.new_event_loop()
     asyncio.set_event_loop(loop)
+
+    def stop_loop(*_args) -> None:
+        if not loop.is_closed():
+            loop.call_soon_threadsafe(loop.stop)
+
     for sig in (signal.SIGINT, signal.SIGTERM):
-        signal.signal(sig, lambda *_: loop.call_soon_threadsafe(loop.stop))
-    loop.create_task(obs_loop())
+        signal.signal(sig, stop_loop)
+    task = loop.create_task(obs_loop())
     try:
         loop.run_forever()
     finally:
+        task.cancel()
+        loop.run_until_complete(asyncio.gather(task, return_exceptions=True))
+        loop.run_until_complete(loop.shutdown_asyncgens())
         loop.close()
 
 
