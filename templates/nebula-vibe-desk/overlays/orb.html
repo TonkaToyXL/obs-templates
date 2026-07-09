@@ -165,9 +165,12 @@
   "use strict";
   var C=window.BRANDING||{};
   var onHttp=(location.protocol==="http:"||location.protocol==="https:");
+  var bridgePort=Number(C.bridgePort);
+  if(!isFinite(bridgePort)||bridgePort<1) bridgePort=18765;
+  var bridgeOrigin="http://127.0.0.1:"+bridgePort;
   var LEVEL_SRCS=onHttp
-    ?["/level.json","level-live.json","http://127.0.0.1:18765/level.json"]
-    :["level-live.json","http://127.0.0.1:18765/level.json"];
+    ?["/level.json","level-live.json",bridgeOrigin+"/level.json"]
+    :["level-live.json",bridgeOrigin+"/level.json"];
   var levelSrc=0, POLL_MS=33, RETRY_MS=300;
   var ATTACK=0.35, RELEASE=0.1, MOUTH_ATTACK=0.78, MOUTH_RELEASE=0.12, IDLE_THRESHOLD=0.01;
   var SPEAK_ON=0.045, SPEAK_OFF=0.02;

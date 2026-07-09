@@ -268,8 +268,8 @@ def rehome_local_url(url: str, port: int) -> str:
 
 def template_required_sources(template_id: str) -> tuple[str, ...]:
     required = {
-        "cozy-cabin-yeti": ("Cabin Overlay", "Yeti Voice Orb", "Mic"),
-        "nebula-vibe-desk": ("Cosmic Sky", "Holographic Orb"),
+        "cozy-cabin-yeti": ("Cabin Overlay", "Yeti Voice Orb", "Stream Logo", "Mic"),
+        "nebula-vibe-desk": ("Cosmic Sky", "Holographic Orb", "Stream Logo"),
     }
     return required.get(template_id, ())
 

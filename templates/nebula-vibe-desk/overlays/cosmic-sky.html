@@ -193,12 +193,18 @@
     for(var i=0;i<stars.length;i++) drawStar(stars[i],now);
     drawShots(now);
     drawVignette();
-    requestAnimationFrame(frame);
+    if(!reduceMotion) requestAnimationFrame(frame);
   }
 
+  var reduceMotion=window.matchMedia&&window.matchMedia("(prefers-reduced-motion: reduce)").matches;
   lockSize();
-  spawnShot();
-  requestAnimationFrame(frame);
+  if(reduceMotion){
+    shooters.length=0;
+    frame(0);
+  } else {
+    spawnShot();
+    requestAnimationFrame(frame);
+  }
 })();
 </script>
 </body>

@@ -145,26 +145,35 @@
       <div class="value" id="meter">Idle</div>
       <div class="meter"><div class="bar" id="bar"></div></div>
     </article>
-    <article class="card wide">
+    <article class="card">
       <div class="label">Status</div>
       <div class="value" id="status">Unknown</div>
       <div class="small" id="peak">peak -100 dB</div>
     </article>
+    <article class="card">
+      <div class="label">Logo Apply</div>
+      <div class="value" id="logoApply">Idle</div>
+      <div class="small" id="logoApplyErr">OBS Stream Logo</div>
+    </article>
     <article class="card wide">
       <div class="label">Runtime</div>
-      <div class="value" id="port">Port 8766</div>
+      <div class="value" id="port">Port …</div>
       <div class="small" id="root">root loading</div>
     </article>
   </section>
   <div class="error" id="error"></div>
-  <footer>
-    Orb source: http://127.0.0.1:8766/overlays/orb.html |
+  <footer id="footer">
+    Orb source loading…
     <a href="/config.html">Config</a>
   </footer>
 </main>
+<script src="branding.js"></script>
 <script>
 (function(){
   "use strict";
+  var C=window.BRANDING||{};
+  var fallbackPort=Number(C.bridgePort);
+  if(!isFinite(fallbackPort)||fallbackPort<1) fallbackPort=8766;
   var overall=document.getElementById("overall");
   var bridge=document.getElementById("bridge");
   var uptime=document.getElementById("uptime");
@@ -175,9 +184,12 @@
   var bar=document.getElementById("bar");
   var status=document.getElementById("status");
   var peak=document.getElementById("peak");
+  var logoApply=document.getElementById("logoApply");
+  var logoApplyErr=document.getElementById("logoApplyErr");
   var port=document.getElementById("port");
   var root=document.getElementById("root");
   var error=document.getElementById("error");
+  var footer=document.getElementById("footer");
 
   function setOverall(kind, text){
     overall.className="pill "+kind;
@@ -189,6 +201,8 @@
     return min ? (min+"m "+sec+"s") : (sec+"s");
   }
   function paint(d){
+    var p=Number(d.port);
+    if(!isFinite(p)||p<1) p=fallbackPort;
     bridge.textContent=d.bridge_status==="running"?"Running":"Unknown";
     uptime.textContent="uptime "+fmtUptime(d.uptime_seconds);
     obs.textContent=d.obs_connected?"Connected":"Offline";
@@ -197,13 +211,18 @@
     meter.textContent=d.meter_seen?"Live":"Waiting";
     status.textContent=d.status||"unknown";
     peak.textContent="peak "+(typeof d.peak_db==="number"?d.peak_db.toFixed(1):"-100")+" dB";
-    port.textContent="Port "+(d.port||8766);
+    logoApply.textContent=d.logo_apply_status||"idle";
+    logoApplyErr.textContent=d.logo_apply_error||"OBS Stream Logo";
+    port.textContent="Port "+p;
     root.textContent=d.root||"runtime unavailable";
+    footer.innerHTML="Orb source: http://127.0.0.1:"+p+"/overlays/orb.html | <a href=\"/config.html\">Config</a>";
     var level=Math.max(0, Math.min(1, Number(d.level)||0));
     bar.style.width=(level*100).toFixed(1)+"%";
-    if(d.last_error){
+    var errMsg=d.last_error||"";
+    if(!errMsg && d.logo_apply_status==="failed" && d.logo_apply_error) errMsg=d.logo_apply_error;
+    if(errMsg){
       error.style.display="block";
-      error.textContent=d.last_error;
+      error.textContent=errMsg;
     } else {
       error.style.display="none";
       error.textContent="";

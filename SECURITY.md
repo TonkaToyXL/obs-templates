@@ -13,10 +13,11 @@ Public, free OBS template files only — overlays, assets, and install docs. No 
 
 | Action | Scope |
 |--------|--------|
-| Copy template files | `~/Documents/OBS-Templates/<name>/` |
+| Copy template files | **Mac:** `~/Library/Application Support/OBS-Templates/<name>/` · **Windows:** `~/Documents/OBS-Templates/<name>/` |
 | Register scene | OBS `basic/scenes/<name>.json` |
 | Enable WebSocket | Local only (`127.0.0.1:4455`) — only if disabled; backs up config first |
 | Preserve WebSocket auth | Uses the existing local password when OBS requires auth; does not disable auth |
+| Start bridge (Mac) | LaunchAgent runs `bridge/start-bridge.sh` at login |
 
 No network access. No telemetry. No stream keys.
 

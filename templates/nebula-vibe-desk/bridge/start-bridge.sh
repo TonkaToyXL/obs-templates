@@ -3,8 +3,6 @@
 set -euo pipefail
 ROOT="$(cd "$(dirname "$0")/.." && pwd)"
 cd "$ROOT"
-export OBS_BRIDGE_PORT="${OBS_BRIDGE_PORT:-18765}"
-export OBS_WS_URL="${OBS_WS_URL:-ws://127.0.0.1:4455}"
 
 if [[ -x /opt/homebrew/bin/python3 ]]; then
   BASE_PYTHON=/opt/homebrew/bin/python3
@@ -16,16 +14,37 @@ else
   BASE_PYTHON=python3
 fi
 
-if [[ -z "${OBS_MIC_INPUT:-}" && -f "$ROOT/branding.user.json" ]]; then
-  export OBS_MIC_INPUT="$("$BASE_PYTHON" - "$ROOT/branding.user.json" <<'PY'
+# Resolve bridge port + mic from branding (user overrides default).
+eval "$("$BASE_PYTHON" - "$ROOT" <<'PY'
 import json
+import shlex
 import sys
-try:
-    print(json.load(open(sys.argv[1], encoding="utf-8")).get("micInputName", "") or "")
-except Exception:
-    print("")
+from pathlib import Path
+
+root = Path(sys.argv[1])
+branding = {}
+for name in ("branding.json", "branding.user.json"):
+    path = root / name
+    if path.is_file():
+        try:
+            data = json.loads(path.read_text(encoding="utf-8"))
+        except Exception:
+            data = {}
+        if isinstance(data, dict):
+            branding.update(data)
+
+port = int(branding.get("bridgePort") or 8765)
+mic = str(branding.get("micInputName") or "")
+print(f"RESOLVED_PORT={port}")
+print(f"RESOLVED_MIC={shlex.quote(mic)}")
 PY
 )"
+
+export OBS_BRIDGE_PORT="${OBS_BRIDGE_PORT:-$RESOLVED_PORT}"
+export OBS_WS_URL="${OBS_WS_URL:-ws://127.0.0.1:4455}"
+
+if [[ -z "${OBS_MIC_INPUT:-}" && -n "${RESOLVED_MIC:-}" ]]; then
+  export OBS_MIC_INPUT="$RESOLVED_MIC"
 fi
 
 VENV="$ROOT/bridge/.venv"

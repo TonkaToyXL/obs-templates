@@ -5,7 +5,7 @@ Download from [TonkaToyXL/obs-templates](https://github.com/TonkaToyXL/obs-templ
 
 ## Preview
 
-**Current preview: v2.1.1**
+**Current preview: v2.2.1**
 
 ![Nebula Vibe Coding scene preview](docs/previews/vibe-coding.webp)
 
@@ -42,17 +42,19 @@ Open **`http://127.0.0.1:18765/config.html`** after install, or edit **`branding
 |-----|----------------|
 | `brandName` | Brand bar wordmark |
 | `tagLine` | Tag after LIVE pill (e.g. `vibe coding`) |
-| `logoOpacity` | Stream logo opacity (0–1) |
+| `logoFile` | Relative path to stream logo (default `assets/logo.png`) |
+| `logoOpacity` | Stream logo opacity (0–1) — applied live to OBS when bridge + OBS are running |
 | `accentCyan` / `accentViolet` | Brand bar accent colors |
+| `bridgePort` | Local bridge port (default `18765`) |
 | `micInputName` | Your mic name in OBS (optional) |
 | `orbPosition` | Preset: `lowerRight`, `rightEdge`, `centerRight`, or `lowerCenter` |
 | `orbScale` | Whole-orb size multiplier (0.72–1.4) |
 | `voiceSensitivity` | Orb/mouth response multiplier (0.45–2.4) |
 | `glowIntensity` | Voice glow multiplier (0.45–1.8) |
 
-Replace **`assets/logo.png`** with your logo (512×512 PNG recommended).
+Replace **`assets/logo.png`** with your logo (512×512 PNG recommended), or set `logoFile` in config.
 
-Config page saves update `branding.user.json` and `overlays/branding.js`. For manual file edits, re-run `install.command` or restart the bridge.
+Config page saves update `branding.user.json` and `overlays/branding.js`. When the bridge is connected to OBS, `logoFile` / `logoOpacity` also update the **Stream Logo** source live. If OBS is closed, config still saves — reopen OBS (or save config again after OBS is up) to apply logo changes.
 
 **Holographic Orb (OBS):** browser source must be **2560×1440** at position **0,0** (full canvas). After updating `orb.html`, right-click the source → **Refresh**.
 
@@ -68,6 +70,8 @@ cd ~/Library/Application\ Support/OBS-Templates/nebula-vibe-desk
 ```
 
 **Mac auto-start:** `install.command` writes `~/Library/LaunchAgents/com.nebula-vibe-desk.bridge.plist` automatically. The bridge reads OBS WebSocket auth from OBS's local config when needed, without storing secrets in the plist.
+
+**Windows auto-start:** Double-click `bridge\start-bridge.bat`, or create a Task Scheduler login task that runs it with the install folder as the working directory.
 
 ## Audio (not in scene file)
 
@@ -91,6 +95,10 @@ Target **−16 LUFS** integrated for streaming.
 - OBS Studio 30+
 - Python 3. The installer creates a local bridge venv and installs `websockets` there.
 - WebSocket enabled: OBS → Settings → WebSocket
+
+## Fonts
+
+Bundled **Syne** and **JetBrains Mono** are SIL Open Font License (OFL). See [LICENSES.md](../../LICENSES.md).
 
 ## License
 

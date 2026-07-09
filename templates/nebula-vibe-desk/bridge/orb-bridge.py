@@ -1,5 +1,9 @@
 #!/usr/bin/env python3
-"""Serve overlay assets and expose mic levels from OBS WebSocket."""
+"""Serve overlay assets and expose mic levels from OBS WebSocket.
+
+Canonical copy lives in templates/_shared/. Run scripts/sync-shared.sh
+(or package/generate-installers) to copy into each template before ship.
+"""
 
 from __future__ import annotations
 
@@ -32,7 +36,26 @@ BRANDING_USER_FILE = ROOT / "branding.user.json"
 BRANDING_JS_FILE = ROOT / "overlays" / "branding.js"
 MAX_LOG_BYTES = 256_000
 STARTED_AT = time.time()
-PORT = int(os.environ.get("OBS_BRIDGE_PORT", os.environ.get("TONKA_ORB_PORT", "18765")))
+LOGO_SOURCE_NAME = "Stream Logo"
+LOGO_FILTER_NAME = "Logo Opacity"
+
+
+def _default_bridge_port() -> int:
+    branding: dict = {}
+    for path in (BRANDING_DEFAULT_FILE, BRANDING_USER_FILE):
+        try:
+            data = json.loads(path.read_text(encoding="utf-8"))
+        except (OSError, json.JSONDecodeError, TypeError, ValueError):
+            continue
+        if isinstance(data, dict):
+            branding.update(data)
+    try:
+        return int(branding.get("bridgePort", 8765) or 8765)
+    except (TypeError, ValueError):
+        return 8765
+
+
+PORT = int(os.environ.get("OBS_BRIDGE_PORT", os.environ.get("TONKA_ORB_PORT", str(_default_bridge_port()))))
 WS_URL = os.environ.get("OBS_WS_URL", os.environ.get("TONKA_OBS_WS", "ws://127.0.0.1:4455"))
 WS_PASS = os.environ.get("OBS_WS_PASS", os.environ.get("TONKA_OBS_WS_PASS", ""))
 
@@ -91,8 +114,12 @@ state = {
     "last_error": "",
     "port": PORT,
     "status": "obs_offline",
+    "logo_apply_status": "idle",
+    "logo_apply_error": "",
 }
 
+_pending_logo: dict | None = None
+_pending_logo_lock = threading.Lock()
 _last_log_at = 0.0
 _offline_logged = False
 
@@ -247,6 +274,8 @@ def health_payload() -> dict:
         "peak_db": state["peak_db"],
         "status": state["status"],
         "last_error": state["last_error"],
+        "logo_apply_status": state["logo_apply_status"],
+        "logo_apply_error": state["logo_apply_error"],
     }
 
 
@@ -299,6 +328,33 @@ def peak_from_input(inp: dict) -> tuple[float, float]:
         normalized = (peak_db + 55.0) / 43.0
         return min(1.0, max(0.0, normalized)), peak_db
     return peak_from_meters(inp.get("inputLevelsMul")), peak_db
+
+
+def queue_logo_apply(branding: dict) -> None:
+    global _pending_logo
+    payload = {
+        "logoFile": branding.get("logoFile", "assets/logo.png"),
+        "logoOpacity": branding.get("logoOpacity", 0.52),
+    }
+    with _pending_logo_lock:
+        _pending_logo = payload
+    state["logo_apply_status"] = "queued"
+    state["logo_apply_error"] = ""
+
+
+def take_pending_logo() -> dict | None:
+    global _pending_logo
+    with _pending_logo_lock:
+        payload = _pending_logo
+        _pending_logo = None
+        return payload
+
+
+def resolve_logo_path(rel: str) -> Path:
+    path = (ROOT / clean_relative_path(rel, 160)).resolve()
+    if not str(path).startswith(str(ROOT.resolve())):
+        raise ValueError("logo path escapes template root")
+    return path
 
 
 class BridgeHandler(SimpleHTTPRequestHandler):
@@ -389,10 +445,13 @@ class BridgeHandler(SimpleHTTPRequestHandler):
             tmp = BRANDING_USER_FILE.with_suffix(".json.tmp")
             tmp.write_text(json.dumps(existing, indent=2) + "\n", encoding="utf-8")
             tmp.replace(BRANDING_USER_FILE)
-            write_branding_js(load_branding())
+            branding = load_branding()
+            write_branding_js(branding)
         except OSError as exc:
             self.send_json({"ok": False, "error": str(exc)}, 500)
             return
+        if "logoFile" in clean or "logoOpacity" in clean:
+            queue_logo_apply(branding)
         self.send_json({"ok": True, **config_payload()})
 
     def do_HEAD(self):
@@ -402,6 +461,40 @@ class BridgeHandler(SimpleHTTPRequestHandler):
         elif path == "/config.html":
             self.path = "/overlays/config.html"
         super().do_HEAD()
+
+
+async def apply_logo_to_obs(request, branding_slice: dict) -> None:
+    """Push logo path/opacity into OBS. Soft-fails if source missing or OBS rejects."""
+    state["logo_apply_status"] = "applying"
+    state["logo_apply_error"] = ""
+    try:
+        logo_rel = str(branding_slice.get("logoFile") or "assets/logo.png")
+        opacity = float(branding_slice.get("logoOpacity", 0.52))
+        logo_path = resolve_logo_path(logo_rel)
+        if not logo_path.is_file():
+            raise FileNotFoundError(f"logo file not found: {logo_rel}")
+        await request(
+            "SetInputSettings",
+            {
+                "inputName": LOGO_SOURCE_NAME,
+                "inputSettings": {"file": str(logo_path)},
+                "overlay": True,
+            },
+        )
+        await request(
+            "SetSourceFilterSettings",
+            {
+                "sourceName": LOGO_SOURCE_NAME,
+                "filterName": LOGO_FILTER_NAME,
+                "filterSettings": {"opacity": opacity},
+            },
+        )
+        state["logo_apply_status"] = "applied"
+        log(f"Applied logo to OBS: {logo_rel} opacity={opacity}")
+    except Exception as exc:
+        state["logo_apply_status"] = "failed"
+        state["logo_apply_error"] = str(exc)
+        log(f"Logo apply soft-fail (config still saved): {exc}")
 
 
 async def obs_session() -> None:
@@ -446,9 +539,20 @@ async def obs_session() -> None:
                 await request("GetInputList")
 
         await refresh_inputs(force=True)
+        pending = take_pending_logo()
+        if pending:
+            await apply_logo_to_obs(request, pending)
 
         while True:
-            msg = json.loads(await ws.recv())
+            pending = take_pending_logo()
+            if pending:
+                await apply_logo_to_obs(request, pending)
+
+            try:
+                msg = json.loads(await asyncio.wait_for(ws.recv(), timeout=0.35))
+            except asyncio.TimeoutError:
+                continue
+
             if msg.get("op") == 7 and msg.get("d", {}).get("requestType") == "GetInputList":
                 inputs = msg["d"].get("responseData", {}).get("inputs", [])
                 names = [i.get("inputName") for i in inputs if i.get("inputName")]
@@ -506,6 +610,9 @@ async def obs_loop() -> None:
             state["level"] *= 0.85
             state["last_error"] = str(exc)
             state["status"] = "obs_offline"
+            if state["logo_apply_status"] == "queued":
+                state["logo_apply_status"] = "pending_obs"
+                state["logo_apply_error"] = "OBS offline — logo will apply when OBS reconnects"
             write_level_file()
             log(f"OBS WebSocket offline: {exc}", throttle_offline=True)
             await asyncio.sleep(3)

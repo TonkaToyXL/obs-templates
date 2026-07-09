@@ -227,6 +227,17 @@
             <label for="tagLine">Tag</label>
             <input id="tagLine" name="tagLine" type="text" maxlength="72" autocomplete="off" />
           </div>
+          <div class="field">
+            <label for="logoFile">Logo Path</label>
+            <input id="logoFile" name="logoFile" type="text" maxlength="160" autocomplete="off" />
+          </div>
+          <div class="field split">
+            <div>
+              <label for="logoOpacity">Logo Opacity</label>
+              <input id="logoOpacity" name="logoOpacity" type="range" min="0" max="1" step="0.01" />
+            </div>
+            <output for="logoOpacity" id="logoOpacityValue">0.58</output>
+          </div>
         </div>
       </div>
 
@@ -320,10 +331,10 @@
 (function(){
   "use strict";
   var fields=[
-    "brandName","tagLine","accentCyan","accentViolet",
+    "brandName","tagLine","logoFile","logoOpacity","accentCyan","accentViolet",
     "micInputName","orbPosition","orbScale","voiceSensitivity","glowIntensity"
   ];
-  var numeric=["orbScale","voiceSensitivity","glowIntensity"];
+  var numeric=["logoOpacity","orbScale","voiceSensitivity","glowIntensity"];
   var form=document.getElementById("configForm");
   var saveBtn=document.getElementById("saveBtn");
   var reloadBtn=document.getElementById("reloadBtn");
@@ -374,6 +385,7 @@
       if(!node) return;
       out[name]=numeric.indexOf(name)>=0 ? Number(node.value) : node.value;
     });
+    out.logoOpacity=clamp(out.logoOpacity,0,1);
     out.orbScale=clamp(out.orbScale,0.72,1.4);
     out.voiceSensitivity=clamp(out.voiceSensitivity,0.45,2.4);
     out.glowIntensity=clamp(out.glowIntensity,0.45,1.8);

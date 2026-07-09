@@ -31,6 +31,7 @@ ids = {
         "display",
         "cabin",
         "orb",
+        "logo",
         "brand-live",
         "brand-soon",
         "privacy",
@@ -114,6 +115,42 @@ def browser(name: str, source_uuid: str, rel_path: str, w: int, h: int, *, local
         settings["is_local_file"] = False
         settings["url"] = rel_path
     return base_source(name, "browser_source", source_uuid, settings)
+
+
+def image_logo(name: str, source_uuid: str, opacity: float) -> dict:
+    source = base_source(
+        name,
+        "image_source",
+        source_uuid,
+        {"file": f"{INSTALL}/assets/logo.png", "unload": False},
+    )
+    source["filters"] = [
+        {
+            "prev_ver": 503382018,
+            "name": "Logo Opacity",
+            "uuid": uid(f"{name}:logo-opacity"),
+            "id": "mask_filter",
+            "versioned_id": "mask_filter",
+            "settings": {"opacity": opacity},
+            "mixers": 0,
+            "sync": 0,
+            "flags": 0,
+            "volume": 1.0,
+            "balance": 0.5,
+            "enabled": True,
+            "muted": False,
+            "push-to-mute": False,
+            "push-to-mute-delay": 0,
+            "push-to-talk": False,
+            "push-to-talk-delay": 0,
+            "hotkeys": {},
+            "deinterlace_mode": 0,
+            "deinterlace_field_order": 0,
+            "monitoring_type": 0,
+            "private_settings": {},
+        }
+    ]
+    return source
 
 
 def audio_input(name: str, source_uuid: str) -> dict:
@@ -202,17 +239,19 @@ vibe_items = [
     scene_item("Display Capture", ids["display"], 1, bounds=(W, H), bounds_type=2),
     scene_item("Cabin Overlay", ids["cabin"], 2, bounds=(W, H), bounds_type=2),
     scene_item("Privacy Mask", ids["privacy"], 3, visible=False),
-    scene_item("Cabin Brand Bar", ids["brand-live"], 4, pos=(38, 1304), scale=(0.926, 0.926)),
-    scene_item("Yeti Voice Orb", ids["orb"], 5),
-    scene_item("Mic", ids["mic"], 6),
+    scene_item("Stream Logo", ids["logo"], 4, pos=(48, 48), scale=(0.33, 0.33)),
+    scene_item("Cabin Brand Bar", ids["brand-live"], 5, pos=(38, 1304), scale=(0.926, 0.926)),
+    scene_item("Yeti Voice Orb", ids["orb"], 6),
+    scene_item("Mic", ids["mic"], 7),
 ]
 
 soon_items = [
     scene_item("Display Capture", ids["display"], 1, bounds=(W, H), bounds_type=2),
     scene_item("Cabin Starting Soon", ids["soon"], 2, bounds=(W, H), bounds_type=2),
-    scene_item("Yeti Voice Orb", ids["orb"], 3),
-    scene_item("Cabin Brand Bar (Soon)", ids["brand-soon"], 4, pos=(38, 1304), scale=(0.926, 0.926)),
-    scene_item("Mic", ids["mic"], 5),
+    scene_item("Stream Logo", ids["logo"], 3, pos=(48, 48), scale=(0.33, 0.33)),
+    scene_item("Yeti Voice Orb", ids["orb"], 4),
+    scene_item("Cabin Brand Bar (Soon)", ids["brand-soon"], 5, pos=(38, 1304), scale=(0.926, 0.926)),
+    scene_item("Mic", ids["mic"], 6),
 ]
 
 collection = {
@@ -224,6 +263,7 @@ collection = {
         display,
         browser("Cabin Overlay", ids["cabin"], "overlays/cabin.html", W, H),
         browser("Privacy Mask", ids["privacy"], "overlays/privacy-blur.html", W, H),
+        image_logo("Stream Logo", ids["logo"], float(BRANDING.get("logoOpacity", 0.58))),
         browser("Cabin Brand Bar", ids["brand-live"], f"{ORIGIN}/overlays/brandbar.html?mode=live", 720, 90, local=False),
         browser("Yeti Voice Orb", ids["orb"], f"{ORIGIN}/overlays/orb.html", W, H, local=False),
         browser("Cabin Starting Soon", ids["soon"], "overlays/soon-backdrop.html", W, H),

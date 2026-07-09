@@ -3,13 +3,16 @@
 ## Safety first (every time)
 
 ```bash
+./scripts/sync-shared.sh # copy templates/_shared into each template
 ./scripts/validate.sh    # blocks personal paths, emails, secrets, bad manifests
 ./scripts/ship.sh "..."  # validate → installers → zip → push
 ```
 
 **Never commit:** raw OBS JSON from your Mac (`/Users/...` paths), WebSocket passwords, stream keys, personal logos.
 
-**Template vs hub branding:** Ship **neutral** overlays (no TonkaToyXL on-stream). Hub README + install guide can credit TonkaToyXL. Users customize via `CONFIG` in each template.
+**Template vs hub branding:** Ship **neutral** overlays (no TonkaToyXL on-stream). Hub README + install guide can credit TonkaToyXL. Users customize via config / `branding.user.json`.
+
+**Shared pack:** Edit `templates/_shared/` (bridge + privacy-blur), never only one template's copy. `package.sh` / `generate-installers.sh` run `sync-shared.sh` so zips stay self-contained. `~/Documents/OBS-Templates/` is a legacy path — App Support is the live install root on Mac.
 
 ## Add a new template
 
@@ -43,7 +46,7 @@ Then ship:
 | `docs/install-guide.html` | Step-by-step slide deck in browser |
 | `README.md` | Text install + video link slot |
 
-Installers copy to `~/Documents/TonkaToyXL-OBS/<template-id>/`. Scene JSON lands in OBS's scenes folder as `TonkaToyXL-<id>.json`.
+On Mac, installers copy to `~/Library/Application Support/OBS-Templates/<template-id>/`. Scene JSON lands in OBS's scenes folder.
 
 ## Video walkthroughs (recommended)
 

@@ -57,6 +57,8 @@ name = manifest["name"]
 install_type = manifest.get("installType", "overlay")
 port = int(branding.get("bridgePort", 8765) or 8765)
 origin = f"http://127.0.0.1:{port}"
+accent_cyan = str(branding.get("accentCyan") or "#00abfd")
+accent_violet = str(branding.get("accentViolet") or "#7c4dff")
 has_logo_asset = (dir_path / "assets" / "logo.png").exists()
 custom_body = (
     f"Use <code>{origin}/config.html</code>, or replace <code>assets/logo.png</code> "
@@ -65,6 +67,25 @@ custom_body = (
     else f"Use <code>{origin}/config.html</code>, or edit <code>branding.user.json</code> "
     "(copy from <code>branding.user.example.json</code>)."
 )
+
+def hex_to_rgb(value: str) -> tuple[int, int, int]:
+    text = value.strip().lstrip("#")
+    if len(text) == 3:
+        text = "".join(ch * 2 for ch in text)
+    if len(text) != 6:
+        return (0, 171, 253)
+    try:
+        n = int(text, 16)
+    except ValueError:
+        return (0, 171, 253)
+    return ((n >> 16) & 255, (n >> 8) & 255, n & 255)
+
+cr, cg, cb = hex_to_rgb(accent_cyan)
+vr, vg, vb = hex_to_rgb(accent_violet)
+cyan_rgb = f"{cr},{cg},{cb}"
+violet_rgb = f"{vr},{vg},{vb}"
+# Dark button text: prefer near-black on bright accents
+btn_fg = "#00131f" if (cr * 299 + cg * 587 + cb * 114) / 1000 > 140 else "#f7fbff"
 
 steps_overlay = [
     ("Download & unzip", "Get the zip from GitHub. Unzip anywhere.", "one click on the repo"),
@@ -116,8 +137,11 @@ out = f"""<!DOCTYPE html>
       font-display: swap;
     }}
     :root {{
-      --cyan: #00abfd;
-      --violet: #7c4dff;
+      --cyan: {html.escape(accent_cyan)};
+      --violet: {html.escape(accent_violet)};
+      --cyan-rgb: {cyan_rgb};
+      --violet-rgb: {violet_rgb};
+      --btn-fg: {btn_fg};
       --bg: #05080d;
       --panel: rgba(12,17,25,0.88);
       --panel-strong: #101722;
@@ -142,8 +166,8 @@ out = f"""<!DOCTYPE html>
       position: fixed;
       inset: 0;
       background:
-        radial-gradient(ellipse 72% 44% at 18% 0%, rgba(0,171,253,0.11), transparent 56%),
-        radial-gradient(ellipse 60% 44% at 88% 100%, rgba(124,77,255,0.13), transparent 52%),
+        radial-gradient(ellipse 72% 44% at 18% 0%, rgba(var(--cyan-rgb),0.11), transparent 56%),
+        radial-gradient(ellipse 60% 44% at 88% 100%, rgba(var(--violet-rgb),0.13), transparent 52%),
         linear-gradient(rgba(232,244,255,0.025) 1px, transparent 1px),
         linear-gradient(90deg, rgba(232,244,255,0.025) 1px, transparent 1px);
       background-size: auto, auto, 32px 32px, 32px 32px;
@@ -183,7 +207,7 @@ out = f"""<!DOCTYPE html>
       height: 8px;
       border-radius: 50%;
       background: var(--cyan);
-      box-shadow: 0 0 14px rgba(0,171,253,0.75);
+      box-shadow: 0 0 14px rgba(var(--cyan-rgb),0.75);
     }}
     .pack-title {{
       font-size: clamp(34px, 6vw, 56px);
@@ -215,7 +239,7 @@ out = f"""<!DOCTYPE html>
       color: var(--muted);
       background: rgba(232,244,255,0.025);
     }}
-    .badge.live {{ border-color: rgba(0,171,253,0.42); color: #34c0ff; }}
+    .badge.live {{ border-color: rgba(var(--cyan-rgb),0.42); color: var(--cyan); }}
     .slide {{
       display: none;
       background: var(--panel);
@@ -232,8 +256,8 @@ out = f"""<!DOCTYPE html>
       position: absolute;
       inset: 0;
       background:
-        linear-gradient(100deg, rgba(0,171,253,0.08), transparent 44%),
-        radial-gradient(circle at 92% 10%, rgba(124,77,255,0.13), transparent 30%);
+        linear-gradient(100deg, rgba(var(--cyan-rgb),0.08), transparent 44%),
+        radial-gradient(circle at 92% 10%, rgba(var(--violet-rgb),0.13), transparent 30%);
       pointer-events: none;
     }}
     .slide::after {{
@@ -261,7 +285,7 @@ out = f"""<!DOCTYPE html>
       font-family: "JetBrains Mono", ui-monospace, monospace;
       font-size: 12px;
       font-weight: 700;
-      color: #00131f;
+      color: var(--btn-fg);
       background: var(--cyan);
       padding: 7px 10px;
       border-radius: 4px;
@@ -301,7 +325,7 @@ out = f"""<!DOCTYPE html>
       color: var(--cyan);
       padding: 0.14em 0.38em;
       border-radius: 3px;
-      border: 1px solid rgba(0,171,253,0.22);
+      border: 1px solid rgba(var(--cyan-rgb),0.22);
     }}
     .nav {{
       display: flex;
@@ -313,8 +337,8 @@ out = f"""<!DOCTYPE html>
       min-width: 92px;
       font-family: "Syne", system-ui, sans-serif;
       background: var(--cyan);
-      color: #00131f;
-      border: 1px solid rgba(0,171,253,0.46);
+      color: var(--btn-fg);
+      border: 1px solid rgba(var(--cyan-rgb),0.46);
       font-weight: 800;
       font-size: 14px;
       padding: 11px 16px;
@@ -336,7 +360,7 @@ out = f"""<!DOCTYPE html>
       border-color: var(--line);
     }}
     button#next:hover:not(:disabled), button#prev:hover:not(:disabled) {{ border-color: var(--cyan); color: var(--cyan); }}
-    button#next.is-done {{ background: var(--cyan); color: #00131f; border-color: var(--cyan); }}
+    button#next.is-done {{ background: var(--cyan); color: var(--btn-fg); border-color: var(--cyan); }}
     button:disabled {{ opacity: 0.32; cursor: default; }}
     .dots {{ display: flex; gap: 7px; flex: 1; justify-content: center; }}
     .dot {{
@@ -349,7 +373,7 @@ out = f"""<!DOCTYPE html>
     .dot.active {{
       width: 54px;
       background: var(--cyan);
-      box-shadow: 0 0 12px rgba(0,171,253,0.45);
+      box-shadow: 0 0 12px rgba(var(--cyan-rgb),0.45);
     }}
     .footer {{
       margin-top: 22px;
@@ -443,6 +467,8 @@ out = f"""<!DOCTYPE html>
 print(f"  guide: {dir_path.name}/docs/install-guide.html")
 PY
 }
+
+"$ROOT/scripts/sync-shared.sh"
 
 shopt -s nullglob
 for dir in "$TEMPLATES"/*/; do

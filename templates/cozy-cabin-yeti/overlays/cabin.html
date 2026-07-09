@@ -23,6 +23,16 @@
   function rand(a,b){ return a+Math.random()*(b-a); }
   function clamp(v,a,b){ return v<a?a:v>b?b:v; }
 
+  function lockSize(){
+    W=2560; H=1440;
+    canvas.width=W; canvas.height=H;
+    canvas.style.width=W+"px"; canvas.style.height=H+"px";
+    document.documentElement.style.width=W+"px";
+    document.documentElement.style.height=H+"px";
+    document.body.style.width=W+"px";
+    document.body.style.height=H+"px";
+  }
+
   function roundRect(x,y,w,h,r){
     ctx.beginPath();
     ctx.moveTo(x+r,y);
@@ -307,6 +317,7 @@
   }
 
   init();
+  lockSize();
   requestAnimationFrame(frame);
 })();
 </script>

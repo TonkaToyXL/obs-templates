@@ -208,8 +208,8 @@
                 "restart_when_active": true,
                 "css": "",
                 "reroute_audio": false,
-                "is_local_file": true,
-                "local_file": "{{INSTALL_DIR}}/overlays/brandbar.html?mode=live"
+                "is_local_file": false,
+                "url": "http://127.0.0.1:18765/overlays/brandbar.html?mode=live"
             },
             "mixers": 0,
             "sync": 0,
@@ -313,8 +313,8 @@
                 "restart_when_active": true,
                 "css": "",
                 "reroute_audio": false,
-                "is_local_file": true,
-                "local_file": "{{INSTALL_DIR}}/overlays/brandbar.html?mode=soon"
+                "is_local_file": false,
+                "url": "http://127.0.0.1:18765/overlays/brandbar.html?mode=soon"
             },
             "mixers": 0,
             "sync": 0,

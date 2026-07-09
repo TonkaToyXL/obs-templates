@@ -37,6 +37,7 @@ package_one() {
   mkdir -p "$DIST"
   rm -f "$tmp"
 
+  "$ROOT/scripts/sync-shared.sh" "$id"
   local builder="$ROOT/scripts/build-${id}-scene.py"
   if [[ -f "$builder" ]]; then
     python3 "$builder"

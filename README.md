@@ -9,13 +9,13 @@ Free OBS overlays and scene packs from [TonkaToyXL](https://github.com/TonkaToyX
 | Template | What it is | Download | OBS |
 |----------|------------|----------|-----|
 <!-- DOWNLOADS:START -->
-| **Cozy Cabin Yeti** | Warm snowy cabin coding scene with fireplace edge glow, snowfall, and a friendly mic-reactive Yeti orb. | [Download `cozy-cabin-yeti-v1.0.0.zip`](./dist/cozy-cabin-yeti-v1.0.0.zip) (294 KB) | 30.0 |
-| **Nebula Vibe Desk** | Full-screen cosmic sky, shooting stars, moon, and voice-reactive holographic orb with local health and config panels. | [Download `nebula-vibe-desk-v2.1.1.zip`](./dist/nebula-vibe-desk-v2.1.1.zip) (278 KB) | 30.0 |
+| **Cozy Cabin Yeti** | Warm snowy cabin coding scene with fireplace edge glow, snowfall, and a friendly mic-reactive Yeti orb. | [Download `cozy-cabin-yeti-v1.1.1.zip`](./dist/cozy-cabin-yeti-v1.1.1.zip) (307 KB) | 30.0 |
+| **Nebula Vibe Desk** | Full-screen cosmic sky, shooting stars, moon, and voice-reactive holographic orb with local health and config panels. | [Download `nebula-vibe-desk-v2.2.1.zip`](./dist/nebula-vibe-desk-v2.2.1.zip) (281 KB) | 30.0 |
 <!-- DOWNLOADS:END -->
 
 ## Preview
 
-**Cozy Cabin Yeti v1.0.0**
+**Cozy Cabin Yeti v1.1.1**
 
 ![Cozy Cabin Yeti Vibe Coding scene preview](./templates/cozy-cabin-yeti/docs/previews/vibe-coding.webp)
 
@@ -23,7 +23,7 @@ Free OBS overlays and scene packs from [TonkaToyXL](https://github.com/TonkaToyX
 |---------------|--------------------|
 | ![Cozy Cabin Yeti Starting Soon scene preview](./templates/cozy-cabin-yeti/docs/previews/starting-soon.webp) | ![Cozy Cabin Yeti config panel preview](./templates/cozy-cabin-yeti/docs/previews/config-panel.webp) |
 
-**Nebula Vibe Desk v2.1.1**
+**Nebula Vibe Desk v2.2.1**
 
 ![Nebula Vibe Coding scene preview](./templates/nebula-vibe-desk/docs/previews/vibe-coding.webp)
 
@@ -54,12 +54,15 @@ Each zip is **plug-and-play**:
 ## Develop / package
 
 ```bash
+./scripts/sync-shared.sh
 ./scripts/build-scene.py
 python3 scripts/build-cozy-cabin-yeti-scene.py
 ./scripts/generate-installers.sh
 ./scripts/validate.sh
-./scripts/package.sh cozy-cabin-yeti
+./scripts/package.sh
 ```
+
+Edit shared bridge/privacy files under `templates/_shared/` only — `sync-shared.sh` copies them into each template before package.
 
 ## License
 

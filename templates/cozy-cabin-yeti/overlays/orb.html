@@ -284,7 +284,10 @@
   var demo=params.get("demo")==="1";
   var preview=params.get("preview")==="1";
   var onHttp=(location.protocol==="http:"||location.protocol==="https:");
-  var LEVEL_SRCS=onHttp?["/level.json","level-live.json","http://127.0.0.1:8766/level.json"]:["level-live.json","http://127.0.0.1:8766/level.json"];
+  var bridgePort=Number(C.bridgePort);
+  if(!isFinite(bridgePort)||bridgePort<1) bridgePort=8766;
+  var bridgeOrigin="http://127.0.0.1:"+bridgePort;
+  var LEVEL_SRCS=onHttp?["/level.json","level-live.json",bridgeOrigin+"/level.json"]:["level-live.json",bridgeOrigin+"/level.json"];
   var levelSrc=0, level=0, mouth=0, target=0, lastFetch=0, nextBlink=0, blink=1, blinkUntil=0;
   var baseScale=1, lastSpeech=-9999, gazeX=0, gazeY=0, targetGazeX=0, targetGazeY=0, nextLook=0;
   var wrap=document.getElementById("wrap"), orb=document.getElementById("orb"), aura=document.getElementById("aura");

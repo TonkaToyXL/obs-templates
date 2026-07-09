@@ -2,40 +2,43 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8" />
+<title>Privacy Mask</title>
 <style>
   * { margin:0;padding:0;box-sizing:border-box; }
   html,body { width:2560px;height:1440px;background:transparent;overflow:hidden;pointer-events:none; }
   :root {
     --panel: rgba(5,8,13,0.72);
     --line: rgba(232,244,255,0.07);
-    --cyan: rgba(0,171,253,0.18);
-    --violet: rgba(124,77,255,0.14);
+    --a: rgba(0,171,253,0.18);
+    --b: rgba(124,77,255,0.14);
+    --a-line: rgba(0,171,253,0.45);
+    --b-line: rgba(124,77,255,0.22);
   }
   .mask-top {
     position:absolute;top:0;left:0;right:0;height:72px;
     backdrop-filter:blur(22px) saturate(145%);-webkit-backdrop-filter:blur(22px) saturate(145%);
     background:
-      linear-gradient(90deg,var(--cyan),transparent 28%,transparent 72%,var(--violet)),
+      linear-gradient(90deg,var(--a),transparent 28%,transparent 72%,var(--b)),
       linear-gradient(180deg,var(--panel) 0%,rgba(5,8,13,0.30) 62%,rgba(5,8,13,0.04) 100%);
     border-bottom:1px solid var(--line);
     box-shadow:0 12px 34px rgba(0,0,0,0.20);
   }
   .mask-top::after {
     content:"";position:absolute;left:0;right:0;bottom:0;height:1px;
-    background:linear-gradient(90deg,rgba(0,171,253,0.45),rgba(124,77,255,0.22),transparent 86%);
+    background:linear-gradient(90deg,var(--a-line),var(--b-line),transparent 86%);
   }
   .mask-bottom {
     position:absolute;bottom:0;left:0;right:0;height:156px;
     backdrop-filter:blur(22px) saturate(145%);-webkit-backdrop-filter:blur(22px) saturate(145%);
     background:
-      linear-gradient(90deg,var(--cyan),transparent 32%,transparent 68%,var(--violet)),
+      linear-gradient(90deg,var(--a),transparent 32%,transparent 68%,var(--b)),
       linear-gradient(0deg,rgba(5,8,13,0.78) 0%,rgba(5,8,13,0.32) 58%,rgba(5,8,13,0.05) 100%);
     border-top:1px solid var(--line);
     box-shadow:0 -18px 42px rgba(0,0,0,0.24);
   }
   .mask-bottom::before {
     content:"";position:absolute;left:0;right:0;top:0;height:1px;
-    background:linear-gradient(90deg,rgba(0,171,253,0.42),rgba(124,77,255,0.22),transparent 86%);
+    background:linear-gradient(90deg,var(--a-line),var(--b-line),transparent 86%);
   }
   .mask-corner {
     position:absolute;top:0;right:0;width:520px;height:180px;
@@ -53,5 +56,29 @@
   <div class="mask-top"></div>
   <div class="mask-bottom"></div>
   <div class="mask-corner"></div>
+<script src="branding.js"></script>
+<script>
+(function(){
+  var C=window.BRANDING||{};
+  function hexToRgba(hex,a){
+    hex=String(hex||"").replace("#","");
+    if(hex.length===3) hex=hex.split("").map(function(c){return c+c;}).join("");
+    if(hex.length!==6) return null;
+    var n=parseInt(hex,16);
+    if(!isFinite(n)) return null;
+    var r=(n>>16)&255,g=(n>>8)&255,b=n&255;
+    return "rgba("+r+","+g+","+b+","+a+")";
+  }
+  var a=hexToRgba(C.accentCyan,0.18);
+  var b=hexToRgba(C.accentViolet,0.14);
+  var al=hexToRgba(C.accentCyan,0.45);
+  var bl=hexToRgba(C.accentViolet,0.22);
+  var root=document.documentElement.style;
+  if(a) root.setProperty("--a",a);
+  if(b) root.setProperty("--b",b);
+  if(al) root.setProperty("--a-line",al);
+  if(bl) root.setProperty("--b-line",bl);
+})();
+</script>
 </body>
 </html>
