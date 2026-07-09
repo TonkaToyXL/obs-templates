@@ -1,0 +1,14 @@
+window.BRANDING = {
+  "brandName": "Your Stream",
+  "tagLine": "cozy coding",
+  "logoFile": "assets/logo.png",
+  "logoOpacity": 0.58,
+  "accentCyan": "#8ed7ff",
+  "accentViolet": "#f6a643",
+  "bridgePort": 8766,
+  "micInputName": "",
+  "orbPosition": "lowerRight",
+  "orbScale": 1,
+  "voiceSensitivity": 1,
+  "glowIntensity": 1
+};

@@ -2,4 +2,11 @@
 branding.user.json
 scripts/install-local-default.py
 .claude/
+.venv/
 __pycache__/
+*.pyc
+*.log
+overlays/level-live.json
+**/overlays/level-live.json
+**/bridge/orb-bridge.log
+**/__pycache__/

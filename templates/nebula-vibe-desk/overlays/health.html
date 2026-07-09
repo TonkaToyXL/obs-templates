@@ -1,0 +1,251 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<link rel="icon" href="data:," />
+<title>Nebula Bridge Health</title>
+<style>
+  @font-face {
+    font-family: "Syne";
+    src: url("../fonts/Syne-Variable.ttf") format("truetype");
+    font-weight: 600 800;
+    font-style: normal;
+    font-display: swap;
+  }
+  @font-face {
+    font-family: "JetBrains Mono";
+    src: url("../fonts/JetBrainsMono-Variable.ttf") format("truetype");
+    font-weight: 400 700;
+    font-style: normal;
+    font-display: swap;
+  }
+  :root {
+    --bg: #05080d;
+    --panel: #0d141d;
+    --panel2: #101a25;
+    --line: rgba(232,244,255,0.11);
+    --text: #e8f4ff;
+    --muted: #8aa0b8;
+    --cyan: #00abfd;
+    --violet: #7c4dff;
+    --green: #5dffbd;
+    --amber: #ffd166;
+    --red: #ff6b7a;
+  }
+  * { box-sizing: border-box; }
+  html, body { min-height: 100%; margin: 0; background: var(--bg); color: var(--text); }
+  body {
+    font-family: "Syne", system-ui, sans-serif;
+    padding: 28px;
+    background:
+      radial-gradient(ellipse 72% 48% at 12% 0%, rgba(0,171,253,0.12), transparent 58%),
+      radial-gradient(ellipse 60% 44% at 96% 100%, rgba(124,77,255,0.14), transparent 54%),
+      var(--bg);
+  }
+  .shell { width: min(920px, 100%); margin: 0 auto; }
+  header {
+    display: flex;
+    align-items: end;
+    justify-content: space-between;
+    gap: 18px;
+    padding-bottom: 18px;
+    border-bottom: 1px solid var(--line);
+  }
+  h1 { margin: 0; font-size: clamp(30px, 6vw, 52px); line-height: 0.95; letter-spacing: 0; }
+  .sub { margin: 10px 0 0; color: var(--muted); font: 13px/1.6 "JetBrains Mono", ui-monospace, monospace; }
+  .pill {
+    display: inline-flex;
+    align-items: center;
+    min-height: 34px;
+    padding: 7px 10px;
+    border: 1px solid var(--line);
+    border-radius: 6px;
+    color: var(--muted);
+    background: rgba(232,244,255,0.04);
+    font: 700 12px/1 "JetBrains Mono", ui-monospace, monospace;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    white-space: nowrap;
+  }
+  .pill.ok { color: #001a12; background: var(--green); border-color: var(--green); }
+  .pill.warn { color: #231600; background: var(--amber); border-color: var(--amber); }
+  .pill.bad { color: #250006; background: var(--red); border-color: var(--red); }
+  .grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; margin-top: 20px; }
+  .card {
+    min-height: 122px;
+    padding: 16px;
+    border: 1px solid var(--line);
+    border-radius: 8px;
+    background: linear-gradient(180deg, rgba(255,255,255,0.035), rgba(255,255,255,0.015)), var(--panel);
+  }
+  .card.wide { grid-column: span 2; }
+  .label {
+    color: var(--muted);
+    font: 700 11px/1 "JetBrains Mono", ui-monospace, monospace;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+  }
+  .value { margin-top: 14px; font-size: 28px; font-weight: 800; letter-spacing: 0; overflow-wrap: anywhere; }
+  .small { margin-top: 10px; color: var(--muted); font: 13px/1.55 "JetBrains Mono", ui-monospace, monospace; overflow-wrap: anywhere; }
+  .meter { height: 10px; margin-top: 18px; border-radius: 999px; background: #07101a; overflow: hidden; border: 1px solid rgba(232,244,255,0.08); }
+  .bar { height: 100%; width: 0%; background: linear-gradient(90deg, var(--cyan), var(--violet)); transition: width 0.16s ease; }
+  .error {
+    margin-top: 14px;
+    padding: 14px;
+    border-radius: 8px;
+    border: 1px solid rgba(255,107,122,0.28);
+    color: #ffc8cf;
+    background: rgba(255,107,122,0.07);
+    font: 13px/1.55 "JetBrains Mono", ui-monospace, monospace;
+    overflow-wrap: anywhere;
+    display: none;
+  }
+  footer { margin-top: 18px; color: var(--muted); font: 12px/1.6 "JetBrains Mono", ui-monospace, monospace; }
+  footer a { color: var(--cyan); text-decoration: none; font-weight: 700; }
+  footer a:hover { text-decoration: underline; }
+  @media (max-width: 760px) {
+    body { padding: 20px; }
+    header { align-items: start; flex-direction: column; }
+    .grid { grid-template-columns: 1fr; }
+    .card.wide { grid-column: auto; }
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .bar { transition: none; }
+  }
+</style>
+</head>
+<body>
+<main class="shell">
+  <header>
+    <div>
+      <h1>Nebula Bridge</h1>
+      <p class="sub">Local orb diagnostics for OBS, mic meter, and overlay service.</p>
+    </div>
+    <span class="pill warn" id="overall">Checking</span>
+  </header>
+  <section class="grid" aria-live="polite">
+    <article class="card">
+      <div class="label">Bridge</div>
+      <div class="value" id="bridge">Waiting</div>
+      <div class="small" id="uptime">uptime 0s</div>
+    </article>
+    <article class="card">
+      <div class="label">OBS</div>
+      <div class="value" id="obs">Offline</div>
+      <div class="small">WebSocket 127.0.0.1</div>
+    </article>
+    <article class="card">
+      <div class="label">Mic</div>
+      <div class="value" id="mic">None</div>
+      <div class="small" id="micState">input not found</div>
+    </article>
+    <article class="card">
+      <div class="label">Meter</div>
+      <div class="value" id="meter">Idle</div>
+      <div class="meter"><div class="bar" id="bar"></div></div>
+    </article>
+    <article class="card">
+      <div class="label">Status</div>
+      <div class="value" id="status">Unknown</div>
+      <div class="small" id="peak">peak -100 dB</div>
+    </article>
+    <article class="card">
+      <div class="label">Logo Apply</div>
+      <div class="value" id="logoApply">Idle</div>
+      <div class="small" id="logoApplyErr">OBS Stream Logo</div>
+    </article>
+    <article class="card wide">
+      <div class="label">Runtime</div>
+      <div class="value" id="port">Port …</div>
+      <div class="small" id="root">root loading</div>
+    </article>
+  </section>
+  <div class="error" id="error"></div>
+  <footer id="footer">
+    Orb source loading…
+    <a href="/config.html">Config</a>
+  </footer>
+</main>
+<script src="branding.js"></script>
+<script>
+(function(){
+  "use strict";
+  var C=window.BRANDING||{};
+  var fallbackPort=Number(C.bridgePort);
+  if(!isFinite(fallbackPort)||fallbackPort<1) fallbackPort=18765;
+  var overall=document.getElementById("overall");
+  var bridge=document.getElementById("bridge");
+  var uptime=document.getElementById("uptime");
+  var obs=document.getElementById("obs");
+  var mic=document.getElementById("mic");
+  var micState=document.getElementById("micState");
+  var meter=document.getElementById("meter");
+  var bar=document.getElementById("bar");
+  var status=document.getElementById("status");
+  var peak=document.getElementById("peak");
+  var logoApply=document.getElementById("logoApply");
+  var logoApplyErr=document.getElementById("logoApplyErr");
+  var port=document.getElementById("port");
+  var root=document.getElementById("root");
+  var error=document.getElementById("error");
+  var footer=document.getElementById("footer");
+
+  function setOverall(kind, text){
+    overall.className="pill "+kind;
+    overall.textContent=text;
+  }
+  function fmtUptime(seconds){
+    seconds=Math.max(0, Math.floor(seconds||0));
+    var min=Math.floor(seconds/60), sec=seconds%60;
+    return min ? (min+"m "+sec+"s") : (sec+"s");
+  }
+  function paint(d){
+    var p=Number(d.port);
+    if(!isFinite(p)||p<1) p=fallbackPort;
+    bridge.textContent=d.bridge_status==="running"?"Running":"Unknown";
+    uptime.textContent="uptime "+fmtUptime(d.uptime_seconds);
+    obs.textContent=d.obs_connected?"Connected":"Offline";
+    mic.textContent=d.mic_input_name||"Auto";
+    micState.textContent=d.mic_found?"input found":"input not found";
+    meter.textContent=d.meter_seen?"Live":"Waiting";
+    status.textContent=d.status||"unknown";
+    peak.textContent="peak "+(typeof d.peak_db==="number"?d.peak_db.toFixed(1):"-100")+" dB";
+    logoApply.textContent=d.logo_apply_status||"idle";
+    logoApplyErr.textContent=d.logo_apply_error||"OBS Stream Logo";
+    port.textContent="Port "+p;
+    root.textContent=d.root||"runtime unavailable";
+    footer.innerHTML="Orb source: http://127.0.0.1:"+p+"/overlays/orb.html | <a href=\"/config.html\">Config</a>";
+    var level=Math.max(0, Math.min(1, Number(d.level)||0));
+    bar.style.width=(level*100).toFixed(1)+"%";
+    var errMsg=d.last_error||"";
+    if(!errMsg && d.logo_apply_status==="failed" && d.logo_apply_error) errMsg=d.logo_apply_error;
+    if(errMsg){
+      error.style.display="block";
+      error.textContent=errMsg;
+    } else {
+      error.style.display="none";
+      error.textContent="";
+    }
+    if(d.obs_connected&&d.mic_found&&d.meter_seen) setOverall("ok","Ready");
+    else if(d.bridge_status==="running") setOverall("warn","Waiting");
+    else setOverall("bad","Offline");
+  }
+  function poll(){
+    fetch("/health.json",{cache:"no-store"}).then(function(r){
+      if(!r.ok) throw new Error("health request failed");
+      return r.json();
+    }).then(paint).catch(function(err){
+      setOverall("bad","Offline");
+      bridge.textContent="Offline";
+      error.style.display="block";
+      error.textContent=err.message||String(err);
+    }).finally(function(){
+      setTimeout(poll, 1000);
+    });
+  }
+  poll();
+})();
+</script>
+</body>
+</html>

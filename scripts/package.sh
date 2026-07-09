@@ -1,5 +1,6 @@
 #!/usr/bin/env bash
 # Package one or all OBS templates into dist/*.zip for direct download.
+# Keep one current, versioned zip per template.
 set -euo pipefail
 
 ROOT="$(cd "$(dirname "$0")/.." && pwd)"
@@ -31,24 +32,41 @@ package_one() {
   version="$(python3 -c "import json; print(json.load(open('$manifest'))['version'])")"
   local zip_name="${id}-v${version}.zip"
   local out="$DIST/$zip_name"
+  local tmp="$DIST/.${zip_name}.tmp.zip"
 
   mkdir -p "$DIST"
-  rm -f "$out"
+  rm -f "$tmp"
 
-  if [[ "$id" == "nebula-vibe-desk" ]]; then
+  "$ROOT/scripts/sync-shared.sh" "$id"
+  local builder="$ROOT/scripts/build-${id}-scene.py"
+  if [[ -f "$builder" ]]; then
+    python3 "$builder"
+  elif [[ "$id" == "nebula-vibe-desk" ]]; then
     python3 "$ROOT/scripts/build-scene.py"
   fi
   "$ROOT/scripts/generate-installers.sh" >/dev/null
 
   # Zip contents at archive root (not nested in templates/id/)
-  (cd "$dir" && zip -qr "$out" . -x "*.DS_Store")
+  (cd "$dir" && zip -qr "$tmp" . \
+    -x "*.DS_Store" \
+    -x "__pycache__/*" \
+    -x "*/__pycache__/*" \
+    -x "*.pyc")
+
+  shopt -s nullglob
+  local old_zip
+  for old_zip in "$DIST/${id}-v"*.zip; do
+    [[ "$old_zip" == "$out" ]] && continue
+    rm -f "$old_zip"
+  done
+  shopt -u nullglob
+
+  mv "$tmp" "$out"
 
   echo "created $out"
 }
 
 [[ "${1:-}" == "-h" || "${1:-}" == "--help" ]] && usage
-
-"$ROOT/scripts/validate.sh"
 
 mkdir -p "$DIST"
 
@@ -64,3 +82,5 @@ else
   package_one "$1"
   "$ROOT/scripts/generate-readme-downloads.sh"
 fi
+
+"$ROOT/scripts/validate.sh"

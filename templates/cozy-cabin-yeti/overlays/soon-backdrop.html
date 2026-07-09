@@ -1,0 +1,94 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<link rel="icon" href="data:," />
+<title>Cabin Starting Soon</title>
+<style>
+  @font-face { font-family:"Syne"; src:url("../fonts/Syne-Variable.ttf") format("truetype"); font-weight:600 800; }
+  @font-face { font-family:"JetBrains Mono"; src:url("../fonts/JetBrainsMono-Variable.ttf") format("truetype"); font-weight:400 700; }
+  * { margin:0; padding:0; box-sizing:border-box; }
+  html, body { width:2560px; height:1440px; background:#160d0a; overflow:hidden; -webkit-font-smoothing:antialiased; }
+  canvas { position:fixed; inset:0; width:2560px; height:1440px; }
+  .title {
+    position:fixed;
+    left:50%;
+    top:58%;
+    transform:translate(-50%,-50%);
+    width:1120px;
+    text-align:center;
+    color:#fff5e5;
+    font:800 76px/0.92 "Syne", system-ui, sans-serif;
+    letter-spacing:0.16em;
+    text-transform:uppercase;
+    text-shadow:0 0 28px rgba(246,166,67,0.26), 0 18px 42px rgba(0,0,0,0.45);
+  }
+  .title::before,
+  .title::after {
+    content:"";
+    position:absolute;
+    top:50%;
+    width:160px;
+    height:2px;
+    background:linear-gradient(90deg,transparent,rgba(246,166,67,0.62));
+  }
+  .title::before { right:calc(100% + 30px); }
+  .title::after { left:calc(100% + 30px); transform:rotate(180deg); }
+  .sub {
+    position:fixed;
+    left:50%;
+    top:calc(58% + 82px);
+    transform:translateX(-50%);
+    color:rgba(255,246,232,0.70);
+    font:700 15px/1 "JetBrains Mono", ui-monospace, monospace;
+    letter-spacing:0.22em;
+    text-transform:uppercase;
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .title { text-shadow:0 18px 42px rgba(0,0,0,0.45); }
+  }
+</style>
+</head>
+<body>
+<canvas id="soon" width="2560" height="1440"></canvas>
+<div class="title">Starting Soon</div>
+<div class="sub">coffee warm, snow outside, code incoming</div>
+<script>
+(function(){
+  "use strict";
+  var W=2560,H=1440,cv=document.getElementById("soon"),ctx=cv.getContext("2d");
+  var flakes=[], sparks=[];
+  function rand(a,b){return a+Math.random()*(b-a);}
+  function rr(x,y,w,h,r){ctx.beginPath();ctx.moveTo(x+r,y);ctx.lineTo(x+w-r,y);ctx.quadraticCurveTo(x+w,y,x+w,y+r);ctx.lineTo(x+w,y+h-r);ctx.quadraticCurveTo(x+w,y+h,x+w-r,y+h);ctx.lineTo(x+r,y+h);ctx.quadraticCurveTo(x,y+h,x,y+h-r);ctx.lineTo(x,y+r);ctx.quadraticCurveTo(x,y,x+r,y);ctx.closePath();}
+  for(var i=0;i<160;i++) flakes.push({x:rand(320,2240),y:rand(170,760),r:rand(1,3.4),s:rand(.3,1.2),p:rand(0,6.28)});
+  for(var j=0;j<46;j++) sparks.push({x:rand(1030,1520),y:rand(1048,1228),r:rand(1,3),vy:rand(.35,1.2),p:rand(0,6.28),life:rand(.25,1)});
+  function draw(now){
+    ctx.clearRect(0,0,W,H);
+    var bg=ctx.createLinearGradient(0,0,0,H);
+    bg.addColorStop(0,"#24120c");bg.addColorStop(.55,"#130b09");bg.addColorStop(1,"#080606");
+    ctx.fillStyle=bg;ctx.fillRect(0,0,W,H);
+    ctx.fillStyle="rgba(87,45,23,0.56)";
+    for(var p=0;p<10;p++){ctx.fillRect(p*270-40,0,170,H);ctx.fillStyle=p%2?"rgba(64,33,19,0.50)":"rgba(87,45,23,0.50)";}
+    rr(328,126,1904,574,28);ctx.fillStyle="rgba(35,22,18,0.86)";ctx.fill();ctx.strokeStyle="rgba(255,231,194,0.16)";ctx.lineWidth=3;ctx.stroke();
+    rr(372,170,1816,486,16);var sky=ctx.createLinearGradient(0,170,0,656);sky.addColorStop(0,"#31526c");sky.addColorStop(.6,"#8eacc0");sky.addColorStop(1,"#d7e4df");ctx.fillStyle=sky;ctx.fill();
+    ctx.save();rr(372,170,1816,486,16);ctx.clip();
+    ctx.fillStyle="rgba(65,82,92,0.74)";ctx.beginPath();ctx.moveTo(260,650);ctx.lineTo(730,318);ctx.lineTo(1170,650);ctx.closePath();ctx.fill();ctx.beginPath();ctx.moveTo(980,650);ctx.lineTo(1460,282);ctx.lineTo(2240,650);ctx.closePath();ctx.fill();
+    ctx.fillStyle="rgba(242,248,245,0.72)";ctx.beginPath();ctx.moveTo(730,318);ctx.lineTo(850,436);ctx.lineTo(626,436);ctx.closePath();ctx.fill();ctx.beginPath();ctx.moveTo(1460,282);ctx.lineTo(1605,430);ctx.lineTo(1320,430);ctx.closePath();ctx.fill();
+    ctx.fillStyle="rgba(246,249,244,0.74)";ctx.fillRect(320,552,1900,160);
+    for(var f=0;f<flakes.length;f++){var fl=flakes[f];fl.y+=fl.s;fl.x+=Math.sin(now*.001+fl.p)*.28;if(fl.y>662){fl.y=162;fl.x=rand(380,2180);}ctx.fillStyle="rgba(255,255,255,.55)";ctx.beginPath();ctx.arc(fl.x,fl.y,fl.r,0,Math.PI*2);ctx.fill();}
+    ctx.restore();
+    ctx.fillStyle="rgba(35,20,14,0.92)";ctx.fillRect(1268,170,24,486);ctx.fillRect(372,400,1816,24);
+    rr(960,972,640,318,24);ctx.fillStyle="rgba(32,18,14,0.88)";ctx.fill();ctx.strokeStyle="rgba(255,228,188,0.15)";ctx.stroke();
+    rr(1040,1032,480,206,18);ctx.fillStyle="rgba(6,4,4,0.58)";ctx.fill();ctx.strokeStyle="rgba(118,70,42,0.42)";ctx.stroke();
+    var glow=ctx.createRadialGradient(1280,1134,0,1280,1134,700);glow.addColorStop(0,"rgba(246,166,67,.35)");glow.addColorStop(.5,"rgba(184,62,28,.12)");glow.addColorStop(1,"rgba(184,62,28,0)");ctx.fillStyle=glow;ctx.fillRect(580,600,1400,840);
+    ctx.strokeStyle="rgba(74,38,20,.95)";ctx.lineCap="round";ctx.lineWidth=28;ctx.beginPath();ctx.moveTo(1150,1200);ctx.lineTo(1418,1168);ctx.moveTo(1120,1160);ctx.lineTo(1470,1206);ctx.stroke();
+    for(var n=0;n<6;n++){var ph=now*.004+n*.8,cx=1200+n*34+Math.sin(ph)*14,base=1180,fh=128+Math.sin(ph*1.7)*34,fw=42+n*3;var fire=ctx.createRadialGradient(cx,base-fh*.35,0,cx,base-fh*.4,fh);fire.addColorStop(0,"rgba(255,244,184,.94)");fire.addColorStop(.34,"rgba(255,173,60,.78)");fire.addColorStop(.74,"rgba(207,67,30,.48)");fire.addColorStop(1,"rgba(207,67,30,0)");ctx.fillStyle=fire;ctx.beginPath();ctx.moveTo(cx,base-fh);ctx.bezierCurveTo(cx-fw,base-fh*.56,cx-fw*1.08,base-fh*.18,cx,base);ctx.bezierCurveTo(cx+fw*1.08,base-fh*.22,cx+fw,base-fh*.58,cx,base-fh);ctx.fill();}
+    for(var s=0;s<sparks.length;s++){var sp=sparks[s];sp.y-=sp.vy;sp.x+=Math.sin(now*.002+sp.p)*.6;sp.life-=.004;if(sp.y<1015||sp.life<=0){sp.x=rand(1130,1430);sp.y=rand(1120,1220);sp.life=rand(.35,1);}ctx.fillStyle="rgba(255,202,110,"+Math.min(sp.life,.8).toFixed(3)+")";ctx.beginPath();ctx.arc(sp.x,sp.y,sp.r*sp.life,0,Math.PI*2);ctx.fill();}
+    var edge=ctx.createRadialGradient(W/2,H*.48,300,W/2,H*.48,1420);edge.addColorStop(0,"rgba(0,0,0,0)");edge.addColorStop(1,"rgba(0,0,0,.38)");ctx.fillStyle=edge;ctx.fillRect(0,0,W,H);
+    requestAnimationFrame(draw);
+  }
+  requestAnimationFrame(draw);
+})();
+</script>
+</body>
+</html>

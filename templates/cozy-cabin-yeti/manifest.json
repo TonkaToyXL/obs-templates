@@ -1,0 +1,19 @@
+{
+  "id": "cozy-cabin-yeti",
+  "name": "Cozy Cabin Yeti",
+  "version": "1.1.1",
+  "description": "Warm snowy cabin coding scene with fireplace edge glow, snowfall, and a friendly mic-reactive Yeti orb.",
+  "obsMinVersion": "30.0",
+  "installType": "scene-collection",
+  "tags": [
+    "browser-source",
+    "scene-collection",
+    "mic-reactive",
+    "cozy",
+    "cabin",
+    "snow",
+    "vibe-coding",
+    "full-screen"
+  ],
+  "canvas": "2560x1440"
+}

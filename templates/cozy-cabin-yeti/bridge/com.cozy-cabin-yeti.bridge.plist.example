@@ -1,0 +1,36 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+  <key>Label</key>
+  <string>com.cozy-cabin-yeti.bridge</string>
+  <key>ProgramArguments</key>
+  <array>
+    <string>/bin/bash</string>
+    <string>REPLACE_WITH_INSTALL_DIR/bridge/start-bridge.sh</string>
+  </array>
+  <key>RunAtLoad</key>
+  <true/>
+  <key>KeepAlive</key>
+  <true/>
+  <key>StandardOutPath</key>
+  <string>REPLACE_WITH_INSTALL_DIR/bridge/bridge.stdout.log</string>
+  <key>StandardErrorPath</key>
+  <string>REPLACE_WITH_INSTALL_DIR/bridge/bridge.stderr.log</string>
+  <key>WorkingDirectory</key>
+  <string>REPLACE_WITH_INSTALL_DIR</string>
+  <key>EnvironmentVariables</key>
+  <dict>
+    <key>HOME</key>
+    <string>REPLACE_WITH_HOME</string>
+    <key>PATH</key>
+    <string>/opt/homebrew/bin:/usr/local/bin:/usr/bin:/bin</string>
+    <key>OBS_BRIDGE_PORT</key>
+    <string>8766</string>
+    <key>OBS_MIC_INPUT</key>
+    <string>REPLACE_WITH_MIC_INPUT</string>
+  </dict>
+  <key>ThrottleInterval</key>
+  <integer>5</integer>
+</dict>
+</plist>

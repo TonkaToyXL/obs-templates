@@ -1,0 +1,139 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<link rel="icon" href="data:," />
+<title>Cabin Brand Bar</title>
+<style>
+  @font-face { font-family:"Syne"; src:url("../fonts/Syne-Variable.ttf") format("truetype"); font-weight:600 800; }
+  @font-face { font-family:"JetBrains Mono"; src:url("../fonts/JetBrainsMono-Variable.ttf") format("truetype"); font-weight:400 700; }
+  :root {
+    --snow:#8ed7ff;
+    --ember:#f6a643;
+    --panel:rgba(29,17,12,0.84);
+    --ink:#fff6e8;
+  }
+  * { margin:0; padding:0; box-sizing:border-box; }
+  html, body { width:720px; height:90px; background:transparent; overflow:hidden; -webkit-font-smoothing:antialiased; }
+  body { display:flex; align-items:flex-start; }
+  .bar {
+    width:720px;
+    height:66px;
+    display:grid;
+    grid-template-columns:minmax(0, auto) auto minmax(0, 1fr);
+    gap:14px;
+    align-items:center;
+    padding:11px 36px 11px 18px;
+    position:relative;
+    overflow:hidden;
+    background:
+      linear-gradient(105deg,rgba(255,235,198,0.08),transparent 34%),
+      linear-gradient(90deg,rgba(246,166,67,0.20),rgba(142,215,255,0.08) 54%,transparent),
+      var(--panel);
+    border:1px solid rgba(255,238,210,0.12);
+    border-left:3px solid var(--ember);
+    clip-path:polygon(0 0, calc(100% - 26px) 0, 100% 50%, calc(100% - 26px) 100%, 0 100%);
+    box-shadow:0 14px 38px rgba(0,0,0,0.36), inset 0 1px 0 rgba(255,255,255,0.08);
+  }
+  .bar::before {
+    content:"";
+    position:absolute;
+    inset:0 28px 0 0;
+    background:
+      radial-gradient(circle at 10% 80%,rgba(246,166,67,0.18),transparent 26%),
+      repeating-linear-gradient(98deg,rgba(255,235,205,0.045) 0 1px,transparent 1px 28px);
+    pointer-events:none;
+  }
+  .bar::after {
+    content:"";
+    position:absolute;
+    left:0; right:0; bottom:0; height:2px;
+    background:linear-gradient(90deg,var(--ember),var(--snow),transparent 84%);
+  }
+  .wordmark {
+    position:relative;
+    z-index:1;
+    min-width:0;
+    max-width:360px;
+    overflow:hidden;
+    text-overflow:ellipsis;
+    white-space:nowrap;
+    font:800 26px/1 "Syne", system-ui, sans-serif;
+    letter-spacing:0;
+    color:var(--ink);
+    text-shadow:0 0 16px rgba(246,166,67,0.26);
+  }
+  .meta {
+    position:relative;
+    z-index:1;
+    display:flex;
+    align-items:center;
+    min-width:0;
+    gap:10px;
+    font:700 10px/1 "JetBrains Mono", ui-monospace, monospace;
+    letter-spacing:0.12em;
+    text-transform:uppercase;
+    color:rgba(255,246,232,0.60);
+  }
+  .pill {
+    display:inline-flex;
+    align-items:center;
+    gap:7px;
+    flex:0 0 auto;
+    padding:6px 11px;
+    border-radius:999px;
+    background:rgba(246,166,67,0.14);
+    border:1px solid rgba(246,166,67,0.40);
+    color:#ffd9a0;
+  }
+  .pill.soon {
+    background:rgba(142,215,255,0.13);
+    border-color:rgba(142,215,255,0.35);
+    color:#caedff;
+  }
+  .dot { width:7px; height:7px; border-radius:50%; background:#ff6448; box-shadow:0 0 10px rgba(255,100,72,0.75); animation:pulse 1.8s ease-in-out infinite; }
+  .soon .dot { background:var(--snow); box-shadow:0 0 10px rgba(142,215,255,0.75); }
+  .sep { color:rgba(255,246,232,0.22); }
+  .tag { min-width:0; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; letter-spacing:0.09em; }
+  @keyframes pulse { 0%,100%{opacity:1;transform:scale(1)} 50%{opacity:.55;transform:scale(.82)} }
+  @media (prefers-reduced-motion: reduce) { .dot { animation:none; } }
+</style>
+</head>
+<body>
+  <div class="bar"><span class="wordmark" id="brand">Your Stream</span><span class="meta" id="meta"></span></div>
+<script src="branding.js"></script>
+<script>
+(function(){
+  var params=new URLSearchParams(location.search);
+  var C=window.BRANDING||{};
+  var brand=params.get("brand")||C.brandName||"Your Stream";
+  var tag=params.get("tag")||C.tagLine||"cozy coding";
+  var mode=(params.get("mode")||"live").toLowerCase();
+  document.documentElement.style.setProperty("--snow", params.get("snow")||C.accentCyan||"#8ed7ff");
+  document.documentElement.style.setProperty("--ember", params.get("ember")||C.accentViolet||"#f6a643");
+  var brandEl=document.getElementById("brand");
+  brandEl.textContent=brand;
+  if(brand.length>24) brandEl.style.fontSize="19px";
+  else if(brand.length>17) brandEl.style.fontSize="22px";
+  else if(brand.length>12) brandEl.style.fontSize="24px";
+  var meta=document.getElementById("meta");
+  var state=mode==="soon"?"soon":"live";
+  var pill=document.createElement("span");
+  var dot=document.createElement("span");
+  var sep=document.createElement("span");
+  var tagEl=document.createElement("span");
+  pill.className="pill "+state;
+  dot.className="dot";
+  sep.className="sep";
+  tagEl.className="tag";
+  pill.appendChild(dot);
+  pill.appendChild(document.createTextNode(state==="soon"?"Starting Soon":"Live"));
+  sep.textContent="//";
+  tagEl.textContent=tag;
+  meta.appendChild(pill);
+  meta.appendChild(sep);
+  meta.appendChild(tagEl);
+})();
+</script>
+</body>
+</html>

@@ -80,57 +80,43 @@ for zip in "$DIST"/*.zip; do
 done
 
 echo
-echo "Manifest checks…"
-
-shopt -s nullglob
-for dir in "$TEMPLATES"/*/; do
-  id="$(basename "$dir")"
-  [[ "$id" == _* ]] && continue
-
-  manifest="$dir/manifest.json"
-  readme="$dir/README.md"
-
-  if [[ ! -f "$manifest" ]]; then
-    red "FAIL: $id missing manifest.json"
-    FAIL=1
-    continue
-  fi
-  if [[ ! -f "$readme" ]]; then
-    red "FAIL: $id missing README.md"
-    FAIL=1
-    continue
-  fi
-  for required in install.command Install.bat install.py "docs/install-guide.html"; do
-    if [[ ! -f "$dir/$required" ]]; then
-      red "FAIL: $id missing $required (run ./scripts/generate-installers.sh)"
-      FAIL=1
-    fi
+echo "Shared pack sync…"
+"$ROOT/scripts/sync-shared.sh" >/dev/null
+SHARED="$TEMPLATES/_shared"
+if [[ -d "$SHARED" ]]; then
+  shopt -s nullglob
+  for dir in "$TEMPLATES"/*/; do
+    id="$(basename "$dir")"
+    [[ "$id" == _* ]] && continue
+    [[ -f "$dir/manifest.json" ]] || continue
+    for rel in bridge/orb-bridge.py bridge/start-bridge.sh bridge/start-bridge.bat overlays/privacy-blur.html; do
+      if [[ -f "$SHARED/$rel" ]]; then
+        if ! cmp -s "$SHARED/$rel" "$dir/$rel"; then
+          red "FAIL: $id/$rel diverges from templates/_shared/$rel (run ./scripts/sync-shared.sh)"
+          FAIL=1
+        else
+          ok "shared match: $id/$rel"
+        fi
+      fi
+    done
   done
+fi
 
-  if ! python3 - "$id" "$manifest" <<'PY'
-import json, re, sys
-folder_id, path = sys.argv[1], sys.argv[2]
-m = json.load(open(path))
-required = ["id", "name", "version", "description"]
-for key in required:
-    if not m.get(key):
-        print(f"FAIL: {folder_id} manifest missing '{key}'")
-        sys.exit(1)
-if m["id"] != folder_id:
-    print(f"FAIL: {folder_id} manifest id '{m['id']}' must match folder name")
-    sys.exit(1)
-if not re.fullmatch(r"[a-z0-9]+(?:-[a-z0-9]+)*", m["id"]):
-    print(f"FAIL: {folder_id} id must be kebab-case")
-    sys.exit(1)
-if not re.fullmatch(r"\d+\.\d+\.\d+", m["version"]):
-    print(f"FAIL: {folder_id} version must be semver (e.g. 1.0.0)")
-    sys.exit(1)
-print(f"  ✓ manifest: {folder_id} v{m['version']}")
-PY
-  then
-    FAIL=1
-  fi
-done
+echo
+echo "Manifest + scene checks…"
+
+if ! python3 "$ROOT/scripts/manifest_validate.py" "$TEMPLATES"; then
+  FAIL=1
+else
+  shopt -s nullglob
+  for dir in "$TEMPLATES"/*/; do
+    id="$(basename "$dir")"
+    [[ "$id" == _* ]] && continue
+    [[ -f "$dir/manifest.json" ]] || continue
+    version="$(python3 -c "import json; print(json.load(open('$dir/manifest.json'))['version'])")"
+    ok "manifest: $id v$version"
+  done
+fi
 
 echo
 if [[ $FAIL -ne 0 ]]; then

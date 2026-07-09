@@ -5,12 +5,16 @@ Public storefront repo. Safety and validate.sh must pass before any publish.
 ## Verification (run before finishing any task)
 
 ```bash
+./scripts/sync-shared.sh
 python3 -m py_compile scripts/*.py
 bash -n scripts/*.sh
 ./scripts/validate.sh
+python3 -m pytest -q
 ```
 
 `validate.sh` requires `rg` (ripgrep). Install if missing: `brew install ripgrep` (macOS) or `apt-get install ripgrep` (CI).
+Edit shared bridge/privacy under `templates/_shared/` only — never only one template copy.
+Manifest/scene rules live in `scripts/manifest_validate.py` (used by validate.sh and pytest).
 
 ## Scope rules
 

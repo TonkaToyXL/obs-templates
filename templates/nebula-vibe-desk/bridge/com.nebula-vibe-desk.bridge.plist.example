@@ -17,14 +17,20 @@
   <string>REPLACE_WITH_INSTALL_DIR/bridge/bridge.stdout.log</string>
   <key>StandardErrorPath</key>
   <string>REPLACE_WITH_INSTALL_DIR/bridge/bridge.stderr.log</string>
+  <key>WorkingDirectory</key>
+  <string>REPLACE_WITH_INSTALL_DIR</string>
   <key>EnvironmentVariables</key>
   <dict>
+    <key>HOME</key>
+    <string>REPLACE_WITH_HOME</string>
+    <key>PATH</key>
+    <string>/opt/homebrew/bin:/usr/local/bin:/usr/bin:/bin</string>
     <key>OBS_BRIDGE_PORT</key>
-    <string>8765</string>
+    <string>18765</string>
     <key>OBS_MIC_INPUT</key>
-    <string></string>
-    <key>OBS_WS_PASS</key>
-    <string></string>
+    <string>REPLACE_WITH_MIC_INPUT</string>
   </dict>
+  <key>ThrottleInterval</key>
+  <integer>5</integer>
 </dict>
 </plist>

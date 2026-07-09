@@ -2,27 +2,33 @@ name: CI
 
 on:
   push:
-    branches:
-      - main
+    branches: [main, "codex/**"]
   pull_request:
-    branches:
-      - main
 
 jobs:
-  test:
+  validate:
     runs-on: ubuntu-latest
     steps:
-      - name: Checkout repository
-        uses: actions/checkout@v4
+      - uses: actions/checkout@v4
 
-      - name: Install dependencies
-        run: sudo apt-get update && sudo apt-get install -y ripgrep
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
 
-      - name: Syntax check Python scripts
-        run: python3 -m py_compile scripts/*.py
+      - name: Install tools
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y ripgrep zip
+          python3 -m pip install --upgrade pip pytest
 
-      - name: Syntax check Bash scripts
-        run: bash -n scripts/*.sh
+      - name: Sync shared + compile
+        run: |
+          ./scripts/sync-shared.sh
+          python3 -m py_compile scripts/*.py templates/_shared/bridge/orb-bridge.py
+          bash -n scripts/*.sh templates/_shared/bridge/start-bridge.sh
 
-      - name: Run validation script
-        run: ./scripts/validate.sh
+      - name: Package templates
+        run: ./scripts/package.sh
+
+      - name: Pytest
+        run: python3 -m pytest -q

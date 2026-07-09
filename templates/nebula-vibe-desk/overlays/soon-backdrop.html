@@ -3,35 +3,73 @@
 <head>
 <meta charset="UTF-8" />
 <style>
-  @font-face { font-family:"Syne"; src:url("fonts/Syne-Variable.ttf") format("truetype"); font-weight:600 800; }
+  @font-face { font-family:"Syne"; src:url("../fonts/Syne-Variable.ttf") format("truetype"); font-weight:600 800; }
+  @font-face { font-family:"JetBrains Mono"; src:url("../fonts/JetBrainsMono-Variable.ttf") format("truetype"); font-weight:400 600; }
   * { margin:0;padding:0;box-sizing:border-box; }
-  html,body { width:100%;height:100%;background:#05080d;overflow:hidden; }
+  html,body { width:2560px;height:1440px;background:#05080d;overflow:hidden;-webkit-font-smoothing:antialiased; }
   .bg {
     position:fixed;inset:0;
     background:
-      radial-gradient(ellipse 80% 60% at 50% 40%,rgba(0,171,253,0.08) 0%,transparent 60%),
-      radial-gradient(ellipse 60% 50% at 80% 70%,rgba(124,77,255,0.07) 0%,transparent 55%),
-      linear-gradient(180deg,#060a12 0%,#05080d 50%,#04060a 100%);
+      radial-gradient(ellipse 76% 50% at 50% 35%,rgba(0,171,253,0.095) 0%,transparent 58%),
+      radial-gradient(ellipse 64% 48% at 79% 75%,rgba(124,77,255,0.13) 0%,transparent 56%),
+      radial-gradient(ellipse 44% 36% at 16% 82%,rgba(0,171,253,0.055) 0%,transparent 62%),
+      linear-gradient(180deg,#060a12 0%,#05080d 48%,#03050a 100%);
+  }
+  .bg::after {
+    content:"";position:absolute;inset:0;
+    background:radial-gradient(ellipse 72% 60% at 50% 52%,transparent 0%,rgba(0,0,0,0.34) 100%);
   }
   .grid {
     position:fixed;inset:0;
-    background-image:linear-gradient(rgba(0,171,253,0.04) 1px,transparent 1px),linear-gradient(90deg,rgba(0,171,253,0.04) 1px,transparent 1px);
+    background-image:linear-gradient(rgba(0,171,253,0.045) 1px,transparent 1px),linear-gradient(90deg,rgba(0,171,253,0.045) 1px,transparent 1px);
     background-size:64px 64px;
     mask-image:radial-gradient(ellipse 70% 60% at 50% 45%,black 0%,transparent 75%);
     -webkit-mask-image:radial-gradient(ellipse 70% 60% at 50% 45%,black 0%,transparent 75%);
-    animation:gridDrift 40s linear infinite;
+    opacity:0.82;animation:gridDrift 40s linear infinite;
   }
   @keyframes gridDrift { to { transform:translate(64px,64px); } }
+  .scan {
+    position:fixed;inset:0;pointer-events:none;
+    background:repeating-linear-gradient(180deg,rgba(255,255,255,0.026) 0 1px,transparent 1px 6px);
+    opacity:0.22;mix-blend-mode:screen;
+  }
+  .frame {
+    position:fixed;inset:56px 64px;pointer-events:none;
+    border:1px solid rgba(232,244,255,0.055);
+    box-shadow:inset 0 0 0 1px rgba(0,171,253,0.025),0 0 80px rgba(0,0,0,0.20);
+  }
+  .frame::before,.frame::after {
+    content:"";position:absolute;width:150px;height:150px;border-color:rgba(52,192,255,0.42);opacity:0.56;
+  }
+  .frame::before { left:-1px;top:-1px;border-left:2px solid;border-top:2px solid; }
+  .frame::after { right:-1px;bottom:-1px;border-right:2px solid;border-bottom:2px solid; }
   .title {
-    position:fixed;top:68%;left:50%;transform:translate(-50%,-50%);
-    font-family:"Syne",sans-serif;font-size:clamp(24px,3.5vw,44px);font-weight:800;
+    position:fixed;top:67%;left:50%;transform:translate(-50%,-50%);
+    width:980px;text-align:center;
+    font-family:"Syne",sans-serif;font-size:48px;font-weight:800;
     letter-spacing:0.32em;text-transform:uppercase;color:transparent;
-    background:linear-gradient(90deg,rgba(52,192,255,0.4),rgba(124,77,255,0.4));
-    -webkit-background-clip:text;background-clip:text;opacity:0.5;
+    background:linear-gradient(90deg,rgba(52,192,255,0.58),rgba(232,244,255,0.42),rgba(124,77,255,0.58));
+    -webkit-background-clip:text;background-clip:text;opacity:0.62;
+    filter:drop-shadow(0 0 18px rgba(0,171,253,0.12));
     animation:titlePulse 4s ease-in-out infinite;
   }
+  .title::before,.title::after {
+    content:"";position:absolute;top:50%;width:120px;height:1px;
+    background:linear-gradient(90deg,transparent,rgba(52,192,255,0.34));
+  }
+  .title::before { right:calc(100% + 24px); }
+  .title::after { left:calc(100% - 2px);transform:rotate(180deg); }
+  .ticks {
+    position:fixed;left:50%;bottom:148px;transform:translateX(-50%);
+    width:520px;height:18px;
+    background:repeating-linear-gradient(90deg,rgba(52,192,255,0.22) 0 2px,transparent 2px 26px);
+    opacity:0.38;
+  }
   @keyframes titlePulse { 0%,100%{opacity:.38} 50%{opacity:.62} }
+  @media (prefers-reduced-motion: reduce) {
+    .grid,.title { animation:none; }
+  }
 </style>
 </head>
-<body><div class="bg"></div><div class="grid"></div><div class="title">Starting Soon</div></body>
+<body><div class="bg"></div><div class="grid"></div><div class="scan"></div><div class="frame"></div><div class="title">Starting Soon</div><div class="ticks"></div></body>
 </html>

@@ -5,6 +5,10 @@
   "logoOpacity": 0.52,
   "accentCyan": "#00abfd",
   "accentViolet": "#7c4dff",
-  "bridgePort": 8765,
-  "micInputName": ""
+  "bridgePort": 18765,
+  "micInputName": "",
+  "orbPosition": "lowerRight",
+  "orbScale": 1,
+  "voiceSensitivity": 1,
+  "glowIntensity": 1
 }
