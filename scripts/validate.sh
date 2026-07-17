@@ -54,6 +54,7 @@ check_patterns "no OBS config absolute paths" 'Library/Application Support/obs-s
   --glob '!install.py' --glob '!installer.py' --glob '!Install.bat' --glob '!install.command'
 check_patterns "no hardcoded WebSocket passwords" 'wsPassword:\s*["\x27][^"\x27]+["\x27]|WS_PASS\s*=\s*os\.environ\.get\([^)]+,\s*["\x27][^"\x27]{6,}'
 check_patterns "no API keys or tokens" 'api[_-]?key|secret[_-]?key|sk-[a-zA-Z0-9]{10,}'
+check_patterns "no stream keys" 'live_[0-9]+_[a-zA-Z0-9]+'
 check_patterns "no device-specific mic names in templates" 'Blue Nessie|AppleUSBAudioEngine' \
   --glob '!README.md' --glob '!FOR-US.md'
 
