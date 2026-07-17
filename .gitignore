@@ -1,6 +1,7 @@
 .DS_Store
 branding.user.json
 scripts/install-local-default.py
+scripts/private-patterns.local
 .claude/
 .venv/
 __pycache__/

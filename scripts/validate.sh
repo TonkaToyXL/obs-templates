@@ -8,6 +8,38 @@ DIST="$ROOT/dist"
 
 FAIL=0
 
+load_private_patterns() {
+  local pattern_file="${OBS_PRIVATE_PATTERNS_FILE:-$ROOT/scripts/private-patterns.local}"
+  local combined="${OBS_PRIVATE_PATTERN_REGEX:-}"
+  local pattern
+
+  if [[ -f "$pattern_file" ]]; then
+    while IFS= read -r pattern || [[ -n "$pattern" ]]; do
+      [[ -z "$pattern" || "$pattern" == \#* ]] && continue
+      if [[ -n "$combined" ]]; then
+        combined="$combined|($pattern)"
+      else
+        combined="($pattern)"
+      fi
+    done < "$pattern_file"
+  fi
+
+  printf '%s' "$combined"
+}
+
+PRIVATE_PATTERN_REGEX="$(load_private_patterns)"
+PRIVATE_PATTERN_VALID=1
+
+if [[ -n "$PRIVATE_PATTERN_REGEX" ]]; then
+  regex_status=0
+  printf '' | rg -q "$PRIVATE_PATTERN_REGEX" 2>/dev/null || regex_status=$?
+  if (( regex_status >= 2 )); then
+    printf '\033[31m%s\033[0m\n' "FAIL: invalid locally configured private-marker regex"
+    FAIL=1
+    PRIVATE_PATTERN_VALID=0
+  fi
+fi
+
 red() { printf '\033[31m%s\033[0m\n' "$1"; }
 ok() { printf '  ✓ %s\n' "$1"; }
 
@@ -16,13 +48,18 @@ check_patterns() {
   local pattern="$2"
   shift 2
   local hits
-  hits="$(rg -n --hidden -S "$pattern" "$@" "$TEMPLATES" "$DIST" 2>/dev/null || true)"
-  if [[ -n "$hits" ]]; then
+  local status=0
+  hits="$(rg -n --hidden -S "$pattern" "$@" "$TEMPLATES" "$DIST" 2>&1)" || status=$?
+  if (( status == 0 )); then
     red "FAIL: $label"
     echo "$hits"
     FAIL=1
-  else
+  elif (( status == 1 )); then
     ok "$label"
+  else
+    red "FAIL: $label (scanner error)"
+    echo "$hits"
+    FAIL=1
   fi
 }
 
@@ -31,13 +68,18 @@ check_paths() {
   local pattern="$2"
   shift 2
   local hits
-  hits="$(rg -n --hidden -S "$pattern" "$@" 2>/dev/null || true)"
-  if [[ -n "$hits" ]]; then
+  local status=0
+  hits="$(rg -n --hidden -S "$pattern" "$@" 2>&1)" || status=$?
+  if (( status == 0 )); then
     red "FAIL: $label"
     echo "$hits"
     FAIL=1
-  else
+  elif (( status == 1 )); then
     ok "$label"
+  else
+    red "FAIL: $label (scanner error)"
+    echo "$hits"
+    FAIL=1
   fi
 }
 
@@ -46,8 +88,6 @@ echo
 
 check_patterns "no home-directory paths" '/Users/[A-Za-z]|/home/[a-z]|C:\\\\Users\\\\'
 check_patterns "no file:// URLs" 'file://'
-check_patterns "no personal username paths" 'account-owner|account-owner'
-check_patterns "no personal dev paths" '00_ACTIVE|github-public-publish'
 check_patterns "no email addresses" '@gmail\.com|@[a-z0-9.-]+\.(com|io|net)'
 check_patterns "no cloud-sync paths" 'CloudStorage|GoogleDrive|Dropbox'
 check_patterns "no OBS config absolute paths" 'Library/Application Support/obs-studio' \
@@ -55,25 +95,54 @@ check_patterns "no OBS config absolute paths" 'Library/Application Support/obs-s
 check_patterns "no hardcoded WebSocket passwords" 'wsPassword:\s*["\x27][^"\x27]+["\x27]|WS_PASS\s*=\s*os\.environ\.get\([^)]+,\s*["\x27][^"\x27]{6,}'
 check_patterns "no API keys or tokens" 'api[_-]?key|secret[_-]?key|sk-[a-zA-Z0-9]{10,}'
 check_patterns "no stream keys" 'live_[0-9]+_[a-zA-Z0-9]+'
-check_patterns "no device-specific mic names in templates" 'Blue Nessie|AppleUSBAudioEngine' \
+check_patterns "no device-specific mic names in templates" 'AppleUSBAudioEngine' \
   --glob '!README.md' --glob '!FOR-US.md'
+if [[ -n "$PRIVATE_PATTERN_REGEX" && $PRIVATE_PATTERN_VALID -eq 1 ]]; then
+  check_patterns "no locally configured private markers" "$PRIVATE_PATTERN_REGEX"
+fi
 
 echo
 echo "Scripts + docs scan…"
-check_paths "no personal paths in scripts" 'account-owner|account-owner|tonka_assets' \
+check_paths "no personal paths in scripts" '/Users/[A-Za-z]|/home/[a-z]|C:\\\\Users\\\\|CloudStorage|GoogleDrive|Dropbox' \
   "$ROOT/scripts" \
-  --glob '!validate.sh' --glob '!install-local-default.py'
-check_paths "no personal paths in root docs" 'account-owner|account-owner|tonka_assets|Blue Nessie|00_ACTIVE|github-public-publish' \
+  --glob '!validate.sh' --glob '!install-local-default.py' --glob '!private-patterns.local'
+check_paths "no personal paths in root docs" '/Users/[A-Za-z]|/home/[a-z]|C:\\\\Users\\\\|CloudStorage|GoogleDrive|Dropbox' \
   "$ROOT/README.md" "$ROOT/FOR-US.md" "$ROOT/SECURITY.md" "$ROOT/STREAM.md"
+if [[ -n "$PRIVATE_PATTERN_REGEX" && $PRIVATE_PATTERN_VALID -eq 1 ]]; then
+  check_paths "no locally configured private markers in scripts" "$PRIVATE_PATTERN_REGEX" \
+    "$ROOT/scripts" --glob '!private-patterns.local'
+  check_paths "no locally configured private markers in root docs" "$PRIVATE_PATTERN_REGEX" \
+    "$ROOT/README.md" "$ROOT/FOR-US.md" "$ROOT/SECURITY.md" "$ROOT/STREAM.md"
+fi
 
 echo
 echo "Zip contents scan…"
+ZIP_PATTERN='/Users/[A-Za-z]|/home/[a-z]|C:\\\\Users\\\\|file://|@gmail\.com|@[a-z0-9.-]+\.(com|io|net)|CloudStorage|GoogleDrive|Dropbox|wsPassword:[[:space:]]*["\x27][^"\x27]+["\x27]|WS_PASS[[:space:]]*=[[:space:]]*os\.environ\.get\([^)]+,[[:space:]]*["\x27][^"\x27]{6,}|api[_-]?key|secret[_-]?key|sk-[a-zA-Z0-9]{10,}|live_[0-9]+_[a-zA-Z0-9]+|AppleUSBAudioEngine'
+if [[ -n "$PRIVATE_PATTERN_REGEX" && $PRIVATE_PATTERN_VALID -eq 1 ]]; then
+  ZIP_PATTERN="$ZIP_PATTERN|$PRIVATE_PATTERN_REGEX"
+fi
 for zip in "$DIST"/*.zip; do
   [[ -f "$zip" ]] || continue
-  hits="$(unzip -p "$zip" 2>/dev/null | rg -n -i 'account-owner|account-owner|@gmail\.com|FhMd|tonka_assets|CloudStorage|Blue Nessie|LOCAL_AREA' || true)"
-  if [[ -n "$hits" ]]; then
+  if ! unzip -tqq "$zip" >/dev/null 2>&1; then
+    red "FAIL: unreadable zip: $(basename "$zip")"
+    FAIL=1
+    continue
+  fi
+
+  content_status=0
+  content_hits="$(unzip -p "$zip" | rg -a -n -i "$ZIP_PATTERN")" || content_status=$?
+  name_status=0
+  name_hits="$(unzip -Z1 "$zip" | rg -n -i "$ZIP_PATTERN")" || name_status=$?
+
+  if (( content_status >= 2 || name_status >= 2 )); then
+    red "FAIL: archive scanner error in $(basename "$zip")"
+    [[ -n "$content_hits" ]] && echo "$content_hits"
+    [[ -n "$name_hits" ]] && echo "$name_hits"
+    FAIL=1
+  elif [[ -n "$content_hits" || -n "$name_hits" ]]; then
     red "FAIL: personal data in $(basename "$zip")"
-    echo "$hits" | head -20
+    [[ -n "$name_hits" ]] && printf 'entry: %s\n' "$name_hits"
+    [[ -n "$content_hits" ]] && echo "$content_hits" | head -20
     FAIL=1
   else
     ok "zip clean: $(basename "$zip")"

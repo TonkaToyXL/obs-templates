@@ -1,0 +1,7 @@
+# Optional local-only privacy markers, one ripgrep-compatible regex per line.
+# Copy this file to private-patterns.local; that file is ignored by git.
+# Keep real usernames, locations, device names, and private paths out of Git.
+
+example-user(name)?
+Example City
+private-project-folder

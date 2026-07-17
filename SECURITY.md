@@ -31,6 +31,12 @@ Run the safety scan (also runs automatically when packaging):
 
 It blocks personal paths (`/Users/...`), emails, cloud-sync paths, hardcoded passwords, and invalid manifests.
 
+For private identifiers that should not be published, copy
+`scripts/private-patterns.example` to the gitignored
+`scripts/private-patterns.local` and add one ripgrep-compatible regular
+expression per line. CI keeps the public baseline checks, while local packaging
+also blocks your private usernames, locations, device names, or project paths.
+
 ## Reporting a vulnerability
 
 Please report security issues privately through [GitHub Security Advisories](https://github.com/TonkaToyXL/obs-templates/security/advisories/new).
