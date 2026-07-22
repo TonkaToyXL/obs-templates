@@ -2,6 +2,15 @@
 
 All notable changes to the templates in this repo. Format: [Keep a Changelog](https://keepachangelog.com/). Versions are per-template (see each `manifest.json`).
 
+## nebula-vibe-desk v2.3.0 — 2026-07-22
+
+**Added — responsive canvas (1080p support):**
+
+- The installer now detects your OBS base resolution (`BaseCX`/`BaseCY` from the active OBS profile) and scales the scene collection to fit: full-canvas browser sources resize, item positions/bounds follow, zoom crop filter and inline CSS scale too. Designed at 2560×1440; works at 1920×1080 and beyond.
+- Overlays are resolution-independent: cosmic-sky fills its viewport (no more hardcoded 2560×1440), orb position presets are fractional (same spot on any canvas), soon-backdrop and privacy-blur are fluid.
+- Opt-in via `responsiveCanvas: true` in the manifest (nebula only for now; cozy-cabin-yeti unchanged).
+- New `tests/test_installer_canvas.py`: scaling + OBS profile detection coverage.
+
 ## nebula-vibe-desk v2.2.2 — 2026-07-22
 
 **Changed:**
@@ -19,6 +28,10 @@ All notable changes to the templates in this repo. Format: [Keep a Changelog](ht
 - Template hygiene and quality pass: shared pack (`templates/_shared/`) for bridge + privacy overlay across templates, `sync-shared.sh`, pytest suite, GitHub Actions CI.
 - Hardened privacy validation: stream-key checks (#4), CI/privacy hardening (#6).
 - Config tuning panel (`orbPosition`, `orbScale`, `voiceSensitivity`, `glowIntensity`) and `health.html` overlay; scoped CORS on the bridge.
+
+## cozy-cabin-yeti v1.1.3 — 2026-07-22
+
+- Shared privacy-blur overlay is now fluid (`100%` viewport) instead of hardcoded 2560×1440 — renders identically at native canvas, ready for responsive installs.
 
 ## cozy-cabin-yeti v1.1.2 — 2026-07-22
 

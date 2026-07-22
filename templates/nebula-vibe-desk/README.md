@@ -5,7 +5,7 @@ Download from [TonkaToyXL/obs-templates](https://github.com/TonkaToyXL/obs-templ
 
 ## Preview
 
-**Current preview: v2.2.1**
+**Current preview: v2.3.0**
 
 ![Nebula Vibe Coding scene preview](docs/previews/vibe-coding.webp)
 
@@ -21,6 +21,8 @@ Download from [TonkaToyXL/obs-templates](https://github.com/TonkaToyXL/obs-templ
 | **Windows** | `Install.bat` |
 
 On Mac, installs the runtime to `~/Library/Application Support/OBS-Templates/nebula-vibe-desk/`, registers the OBS scene collection, and starts the mic bridge with LaunchAgent. Existing `~/Documents/OBS-Templates/nebula-vibe-desk/` branding/logo files are migrated when present and left in place.
+
+**Any canvas:** the installer reads your OBS base resolution (1920×1080, 2560×1440, …) from your OBS profile and scales the scene and overlays to fit — nothing to configure. (Designed at 2560×1440.)
 
 **In OBS:** Scene Collection → **Nebula Vibe Desk** → scene **Vibe Coding**.
 

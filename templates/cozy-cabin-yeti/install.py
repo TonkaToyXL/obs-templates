@@ -1,5 +1,6 @@
 #!/usr/bin/env python3
 """OBS template installer - copies assets, writes branding, registers OBS scene."""
+
 from __future__ import annotations
 
 import json
@@ -111,7 +112,12 @@ def copy_template_files(target: Path, legacy: Path | None = None) -> None:
         src = ROOT / name
         if src.exists() and any(src.iterdir()):
             shutil.copytree(src, target / name, dirs_exist_ok=True)
-    for name in ("README.md", "manifest.json", "branding.json", "branding.user.example.json"):
+    for name in (
+        "README.md",
+        "manifest.json",
+        "branding.json",
+        "branding.user.example.json",
+    ):
         src = ROOT / name
         if src.exists():
             shutil.copy2(src, target / name)
@@ -124,7 +130,12 @@ def copy_template_files(target: Path, legacy: Path | None = None) -> None:
     if bridge_py.exists():
         bridge_py.chmod(bridge_py.stat().st_mode | 0o111)
     if platform.system() == "Darwin":
-        subprocess.run(["xattr", "-cr", str(target)], check=False, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
+        subprocess.run(
+            ["xattr", "-cr", str(target)],
+            check=False,
+            stdout=subprocess.DEVNULL,
+            stderr=subprocess.DEVNULL,
+        )
 
 
 def patch_scene_paths(content: str, install_dir: Path, template_id: str) -> str:
@@ -177,7 +188,9 @@ def ensure_zoom_crop_filter(data: dict) -> None:
         if not isinstance(filters, list):
             filters = []
             source["filters"] = filters
-        if not any(f.get("name") == ZOOM_FILTER_NAME for f in filters if isinstance(f, dict)):
+        if not any(
+            f.get("name") == ZOOM_FILTER_NAME for f in filters if isinstance(f, dict)
+        ):
             filters.append(zoom_crop_filter())
 
 
@@ -196,7 +209,9 @@ def local_zoom_script_module() -> dict | None:
         "path": str(path),
         "settings": {
             "obs_zoom_to_mouse.hotkey.zoom": [{"command": True, "key": "OBS_KEY_1"}],
-            "obs_zoom_to_mouse.hotkey.hold_zoom": [{"command": True, "key": "OBS_KEY_2"}],
+            "obs_zoom_to_mouse.hotkey.hold_zoom": [
+                {"command": True, "key": "OBS_KEY_2"}
+            ],
             "obs_zoom_to_mouse.hotkey.follow": [],
             "obs_zoom_to_mouse.hotkey.closeup": [{"command": True, "key": "OBS_KEY_3"}],
             "obs_zoom_to_mouse.hotkey.macro": [],
@@ -228,11 +243,17 @@ def ensure_local_zoom_script(data: dict) -> None:
         scripts = []
         modules["scripts-tool"] = scripts
     script_path = module["path"]
-    if not any(str(item.get("path", "")) == script_path for item in scripts if isinstance(item, dict)):
+    if not any(
+        str(item.get("path", "")) == script_path
+        for item in scripts
+        if isinstance(item, dict)
+    ):
         scripts.append(module)
 
 
-def normalize_scene_collection(content: str, collection_name: str, port: int, template_id: str) -> str:
+def normalize_scene_collection(
+    content: str, collection_name: str, port: int, template_id: str
+) -> str:
     data = json.loads(content)
     scene_names = {scene.get("name") for scene in data.get("scene_order", [])}
     data["name"] = collection_name
@@ -245,7 +266,9 @@ def normalize_scene_collection(content: str, collection_name: str, port: int, te
         settings = source.setdefault("settings", {})
         url = str(settings.get("url", ""))
         name = str(source.get("name", ""))
-        if name in ("Holographic Orb", "Yeti Voice Orb") or url.endswith("/overlays/orb.html"):
+        if name in ("Holographic Orb", "Yeti Voice Orb") or url.endswith(
+            "/overlays/orb.html"
+        ):
             settings["is_local_file"] = False
             settings["url"] = f"http://127.0.0.1:{port}/overlays/orb.html"
             settings.pop("local_file", None)
@@ -316,7 +339,9 @@ def current_scene_collection_file() -> str | None:
     return None
 
 
-def best_existing_scene_collection(template_id: str, collection_name: str) -> str | None:
+def best_existing_scene_collection(
+    template_id: str, collection_name: str
+) -> str | None:
     if template_id == "cozy-cabin-yeti":
         return None
 
@@ -345,7 +370,91 @@ def best_existing_scene_collection(template_id: str, collection_name: str) -> st
     return best_content
 
 
-def install_scene_collections(install_dir: Path, template_id: str, collection_name: str, port: int) -> list[str]:
+def detect_obs_canvas(base: Path) -> tuple[int, int]:
+    """Read the most recently written OBS profile's base canvas (BaseCX/BaseCY).
+
+    OBS rewrites the active profile's basic.ini on exit, so the newest profile
+    is almost always the active one. Falls back to 2560x1440 (design canvas).
+    """
+    profiles = base / "basic" / "profiles"
+    best: tuple[float, int, int] | None = None
+    if profiles.is_dir():
+        for basic_ini in profiles.glob("*/basic.ini"):
+            try:
+                cx = cy = 0
+                for line in basic_ini.read_text(
+                    encoding="utf-8", errors="replace"
+                ).splitlines():
+                    line = line.strip()
+                    if line.startswith("BaseCX="):
+                        cx = int(line.split("=", 1)[1])
+                    elif line.startswith("BaseCY="):
+                        cy = int(line.split("=", 1)[1])
+                if cx > 0 and cy > 0:
+                    mtime = basic_ini.stat().st_mtime
+                    if best is None or mtime > best[0]:
+                        best = (mtime, cx, cy)
+            except (OSError, ValueError):
+                continue
+    return (best[1], best[2]) if best else (2560, 1440)
+
+
+def scale_scene_canvas(content: str, canvas_w: int, canvas_h: int) -> str:
+    """Scale a scene collection from its own resolution to the user's canvas.
+
+    Full-canvas browser sources (width/height == source resolution) resize to
+    the new canvas; fixed-size sources (brand bar 720x90) keep their size.
+    Item positions, scale refs, bounds, zoom crop filters, and inline CSS
+    follow. No-op when sizes already match.
+    """
+    data = json.loads(content)
+    res = data.get("resolution") or {}
+    src_w, src_h = res.get("x"), res.get("y")
+    if not isinstance(src_w, (int, float)) or not isinstance(src_h, (int, float)):
+        return content
+    if src_w == canvas_w and src_h == canvas_h:
+        return content
+    rx, ry = canvas_w / src_w, canvas_h / src_h
+
+    for source in data.get("sources", []):
+        if not isinstance(source, dict):
+            continue
+        settings = source.get("settings", {})
+        if isinstance(settings, dict):
+            if settings.get("width") == src_w and settings.get("height") == src_h:
+                settings["width"], settings["height"] = canvas_w, canvas_h
+            css = settings.get("css")
+            if isinstance(css, str) and f"{src_w}px" in css:
+                settings["css"] = css.replace(f"{src_w}px", f"{canvas_w}px").replace(
+                    f"{src_h}px", f"{canvas_h}px"
+                )
+        for filt in source.get("filters", []) or []:
+            fs = filt.get("settings", {}) if isinstance(filt, dict) else {}
+            if fs.get("cx") == src_w and fs.get("cy") == src_h:
+                fs["cx"], fs["cy"] = canvas_w, canvas_h
+        if source.get("id") == "scene":
+            for item in (source.get("settings", {}) or {}).get("items", []) or []:
+                if not isinstance(item, dict):
+                    continue
+                for key, ratio in (("x", rx), ("y", ry)):
+                    for box in ("pos", "scale_ref", "bounds"):
+                        pt = item.get(box)
+                        if isinstance(pt, dict) and isinstance(
+                            pt.get(key), (int, float)
+                        ):
+                            pt[key] *= ratio
+
+    data["resolution"] = {"x": canvas_w, "y": canvas_h}
+    return json.dumps(data, indent=4) + "\n"
+
+
+def install_scene_collections(
+    install_dir: Path,
+    template_id: str,
+    collection_name: str,
+    port: int,
+    canvas: tuple[int, int] = (2560, 1440),
+) -> list[str]:
     scene_dir = ROOT / "scene"
     if not scene_dir.exists():
         return []
@@ -358,7 +467,10 @@ def install_scene_collections(install_dir: Path, template_id: str, collection_na
     for scene_file in sorted(scene_dir.glob("*.json")):
         source = existing or scene_file.read_text(encoding="utf-8")
         patched = patch_scene_paths(source, install_dir, template_id)
-        patched = normalize_scene_collection(patched, collection_name, port, template_id)
+        patched = normalize_scene_collection(
+            patched, collection_name, port, template_id
+        )
+        patched = scale_scene_canvas(patched, canvas[0], canvas[1])
         out_name = scene_collection_filename(collection_name, template_id)
         out_path = scenes_out / out_name
         out_path.write_text(patched, encoding="utf-8")
@@ -367,7 +479,9 @@ def install_scene_collections(install_dir: Path, template_id: str, collection_na
     return installed
 
 
-def set_current_scene_collection(template_id: str, collection_name: str, scene_file: str) -> None:
+def set_current_scene_collection(
+    template_id: str, collection_name: str, scene_file: str
+) -> None:
     cfg = obs_base() / "user.ini"
     if platform.system() != "Darwin" or not cfg.exists():
         return
@@ -407,7 +521,14 @@ def set_current_scene_collection(template_id: str, collection_name: str, scene_f
         if not saw_file:
             out.append(f"SceneCollectionFile={scene_file}")
     elif not saw_basic:
-        out.extend(["", "[Basic]", f"SceneCollection={collection_name}", f"SceneCollectionFile={scene_file}"])
+        out.extend(
+            [
+                "",
+                "[Basic]",
+                f"SceneCollection={collection_name}",
+                f"SceneCollectionFile={scene_file}",
+            ]
+        )
 
     backup = cfg.with_suffix(f".ini.bak-{template_id}-install")
     if not backup.exists():
@@ -477,12 +598,15 @@ def command_tail(proc: subprocess.CompletedProcess[str], fallback: str) -> str:
 
 
 def python_imports_module(python: Path | str, module: str) -> bool:
-    return subprocess.run(
-        [str(python), "-c", f"import {module}"],
-        check=False,
-        stdout=subprocess.DEVNULL,
-        stderr=subprocess.DEVNULL,
-    ).returncode == 0
+    return (
+        subprocess.run(
+            [str(python), "-c", f"import {module}"],
+            check=False,
+            stdout=subprocess.DEVNULL,
+            stderr=subprocess.DEVNULL,
+        ).returncode
+        == 0
+    )
 
 
 def ensure_bridge_venv(target: Path) -> tuple[bool, str]:
@@ -518,14 +642,19 @@ def ensure_bridge_venv(target: Path) -> tuple[bool, str]:
             text=True,
         )
         if proc.returncode != 0:
-            return False, f"could not install websockets in bridge venv: {command_tail(proc, 'pip failed')}"
+            return (
+                False,
+                f"could not install websockets in bridge venv: {command_tail(proc, 'pip failed')}",
+            )
 
     if python_imports_module(python, "websockets"):
         return True, f"local Python venv ready at {venv}"
     return False, "websockets still unavailable after bridge venv repair"
 
 
-def install_launch_agent(template_id: str, target: Path, branding: dict) -> tuple[bool, str]:
+def install_launch_agent(
+    template_id: str, target: Path, branding: dict
+) -> tuple[bool, str]:
     script = target / "bridge" / "start-bridge.sh"
     if not script.exists() or platform.system() != "Darwin":
         return False, "LaunchAgent is only installed on macOS."
@@ -559,15 +688,44 @@ def install_launch_agent(template_id: str, target: Path, branding: dict) -> tupl
     plist_path.chmod(0o644)
 
     domain = f"gui/{os.getuid()}"
-    subprocess.run(["launchctl", "bootout", f"{domain}/{label}"], check=False, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
-    subprocess.run(["launchctl", "bootout", domain, str(plist_path)], check=False, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
-    boot = subprocess.run(["launchctl", "bootstrap", domain, str(plist_path)], check=False, capture_output=True, text=True)
-    subprocess.run(["launchctl", "enable", f"{domain}/{label}"], check=False, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
-    kick = subprocess.run(["launchctl", "kickstart", "-k", f"{domain}/{label}"], check=False, capture_output=True, text=True)
+    subprocess.run(
+        ["launchctl", "bootout", f"{domain}/{label}"],
+        check=False,
+        stdout=subprocess.DEVNULL,
+        stderr=subprocess.DEVNULL,
+    )
+    subprocess.run(
+        ["launchctl", "bootout", domain, str(plist_path)],
+        check=False,
+        stdout=subprocess.DEVNULL,
+        stderr=subprocess.DEVNULL,
+    )
+    boot = subprocess.run(
+        ["launchctl", "bootstrap", domain, str(plist_path)],
+        check=False,
+        capture_output=True,
+        text=True,
+    )
+    subprocess.run(
+        ["launchctl", "enable", f"{domain}/{label}"],
+        check=False,
+        stdout=subprocess.DEVNULL,
+        stderr=subprocess.DEVNULL,
+    )
+    kick = subprocess.run(
+        ["launchctl", "kickstart", "-k", f"{domain}/{label}"],
+        check=False,
+        capture_output=True,
+        text=True,
+    )
     if boot.returncode != 0:
-        return False, (boot.stderr or boot.stdout or "launchctl bootstrap failed").strip()
+        return False, (
+            boot.stderr or boot.stdout or "launchctl bootstrap failed"
+        ).strip()
     if kick.returncode != 0:
-        return False, (kick.stderr or kick.stdout or "launchctl kickstart failed").strip()
+        return False, (
+            kick.stderr or kick.stdout or "launchctl kickstart failed"
+        ).strip()
     time.sleep(0.4)
     return True, f"{label} running from {target}"
 
@@ -607,7 +765,11 @@ def notify(title: str, message: str) -> None:
         return
     if platform.system() == "Darwin":
         subprocess.run(
-            ["osascript", "-e", f'display notification "{message}" with title "{title}"'],
+            [
+                "osascript",
+                "-e",
+                f'display notification "{message}" with title "{title}"',
+            ],
             check=False,
         )
 
@@ -626,7 +788,10 @@ def main() -> None:
 
     scenes: list[str] = []
     if install_type in ("scene-collection", "both"):
-        scenes = install_scene_collections(target, template_id, name, port)
+        canvas = (2560, 1440)
+        if manifest.get("responsiveCanvas"):
+            canvas = detect_obs_canvas(obs_base())
+        scenes = install_scene_collections(target, template_id, name, port, canvas)
         if scenes:
             set_current_scene_collection(template_id, name, scenes[0])
 
@@ -644,6 +809,10 @@ def main() -> None:
         for s in scenes:
             print(f"  - {s}")
         print()
+        if manifest.get("responsiveCanvas"):
+            print(
+                f"Canvas:    {canvas[0]}x{canvas[1]} (detected from your OBS profile)"
+            )
         print(f"OBS → Scene Collection → {name} → Vibe Coding")
         print(f"Orb URL:   http://127.0.0.1:{port}/overlays/orb.html")
         print(f"Health:    http://127.0.0.1:{port}/health.html")
