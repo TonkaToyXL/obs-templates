@@ -9,10 +9,10 @@
     --violet:#7c4dff; --pink:#d56cff; --warm:#ffd08a; --core:#04060e;
   }
   * { margin:0;padding:0;box-sizing:border-box; }
-  html,body { width:2560px;height:1440px;background:transparent;overflow:hidden; }
-  .stage { position:relative;width:2560px;height:1440px;overflow:visible; }
+  html,body { width:100%;height:100%;background:transparent;overflow:hidden; }
+  .stage { position:relative;width:100%;height:100%;overflow:visible; }
   .wrap {
-    position:absolute;width:378px;height:378px;left:1960px;top:1040px;
+    position:absolute;width:378px;height:378px;left:76.6%;top:72.2%;
     display:flex;align-items:center;justify-content:center;
     filter:drop-shadow(0 18px 32px rgba(0,0,0,0.42));
     will-change:left,top,transform;
@@ -182,11 +182,13 @@
   var VOICE_SENSITIVITY=1;
   var ORB_SCALE=1;
   var GLOW_INTENSITY=1;
+  // Positions are fractions of the viewport so the orb lands in the same spot
+  // on any canvas (designed at 2560x1440; installer scales the scene).
   var POSITION_PRESETS={
-    lowerRight:{x:1965,y:1045,rx:72,ry:54},
-    rightEdge:{x:2210,y:1140,rx:44,ry:34},
-    centerRight:{x:2105,y:730,rx:58,ry:44},
-    lowerCenter:{x:1280,y:1060,rx:62,ry:34}
+    lowerRight:{x:0.7676,y:0.7257,rx:0.0281,ry:0.0375},
+    rightEdge:{x:0.8633,y:0.7917,rx:0.0172,ry:0.0236},
+    centerRight:{x:0.8223,y:0.5069,rx:0.0227,ry:0.0306},
+    lowerCenter:{x:0.5,y:0.7361,rx:0.0242,ry:0.0236}
   };
   var POS=POSITION_PRESETS.lowerRight;
   function applyConfig(next){
@@ -483,7 +485,8 @@
     ring1.style.transform="scale("+(1+g*0.02*GLOW_INTENSITY).toFixed(3)+") rotate("+(g*3).toFixed(1)+"deg)"; ring1.style.opacity=clamp(0.22+g*0.2*GLOW_INTENSITY,0,0.75).toFixed(2);
     ring2.style.transform="scale("+(1+g*0.025*GLOW_INTENSITY).toFixed(3)+") rotate("+(-g*4).toFixed(1)+"deg)"; ring2.style.opacity=clamp(0.18+g*0.16*GLOW_INTENSITY,0,0.7).toFixed(2);
     var floatAmp=speaking?0.92:1;
-    var anchorX=POS.x, anchorY=POS.y, roamX=POS.rx, roamY=POS.ry;
+    var vw=window.innerWidth||2560, vh=window.innerHeight||1440;
+    var anchorX=POS.x*vw, anchorY=POS.y*vh, roamX=POS.rx*vw, roamY=POS.ry*vh;
     var t=now*0.00105;
     var px=anchorX+Math.sin(t)*roamX*floatAmp;
     var py=anchorY+(Math.sin(t*1.35+0.8)*roamY+Math.sin(t*2.1)*6)*floatAmp;

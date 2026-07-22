@@ -1,8 +1,9 @@
 {
   "id": "nebula-vibe-desk",
   "name": "Nebula Vibe Desk",
-  "version": "2.2.2",
-  "description": "Full-screen cosmic sky, shooting stars, moon, and voice-reactive holographic orb with local health and config panels.",
+  "version": "2.3.0",
+  "description": "Full-screen cosmic sky, shooting stars, moon, and voice-reactive holographic orb with local health and config panels. Auto-scales to your OBS canvas (1080p, 1440p, …).",
+  "responsiveCanvas": true,
   "obsMinVersion": "30.0",
   "installType": "scene-collection",
   "tags": [
