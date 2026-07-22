@@ -16,6 +16,7 @@ sys.path.insert(0, str(ROOT / "scripts"))
 from manifest_validate import (  # noqa: E402
     REQUIRED_SOURCES,
     validate_manifest,
+    validate_port_consistency,
     validate_scene_sources,
     validate_template_dir,
     validate_templates_root,
@@ -87,3 +88,50 @@ def test_dist_zip_contains_required_files(folder: Path) -> None:
 def test_required_sources_cover_shipped_templates() -> None:
     ids = {p.name for p in template_dirs()}
     assert set(REQUIRED_SOURCES) == ids
+
+
+def _fake_template(tmp_path: Path, port: int, scene_url: str) -> Path:
+    folder = tmp_path / "demo-tpl"
+    (folder / "scene").mkdir(parents=True)
+    (folder / "overlays").mkdir()
+    (folder / "branding.json").write_text(
+        json.dumps({"bridgePort": port}), encoding="utf-8"
+    )
+    scene = {"sources": [{"name": "Orb", "settings": {"url": scene_url}}]}
+    (folder / "scene" / "demo-tpl.json").write_text(json.dumps(scene), encoding="utf-8")
+    return folder
+
+
+def test_port_consistency_passes_when_aligned(tmp_path: Path) -> None:
+    folder = _fake_template(tmp_path, 18765, "http://127.0.0.1:18765/overlays/orb.html")
+    assert validate_port_consistency(folder) == []
+
+
+def test_port_consistency_catches_scene_drift(tmp_path: Path) -> None:
+    folder = _fake_template(tmp_path, 18765, "http://127.0.0.1:8765/overlays/orb.html")
+    errors = validate_port_consistency(folder)
+    assert any("8765" in e and "18765" in e for e in errors)
+
+
+def test_port_consistency_catches_orb_html_drift(tmp_path: Path) -> None:
+    folder = _fake_template(tmp_path, 18765, "http://127.0.0.1:18765/overlays/orb.html")
+    (folder / "overlays" / "orb.html").write_text(
+        'fetch("http://127.0.0.1:8765/level.json")', encoding="utf-8"
+    )
+    errors = validate_port_consistency(folder)
+    assert any("orb.html" in e for e in errors)
+
+
+def test_port_consistency_catches_missing_scene_file(tmp_path: Path) -> None:
+    folder = _fake_template(tmp_path, 18765, "http://127.0.0.1:18765/overlays/orb.html")
+    scene = {
+        "sources": [
+            {
+                "name": "Sky",
+                "settings": {"local_file": "{{INSTALL_DIR}}/overlays/nope.html"},
+            }
+        ]
+    }
+    (folder / "scene" / "demo-tpl.json").write_text(json.dumps(scene), encoding="utf-8")
+    errors = validate_port_consistency(folder)
+    assert any("missing file" in e for e in errors)

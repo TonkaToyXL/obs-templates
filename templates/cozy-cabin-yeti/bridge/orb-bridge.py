@@ -55,17 +55,30 @@ def _default_bridge_port() -> int:
         return 8765
 
 
-PORT = int(os.environ.get("OBS_BRIDGE_PORT", os.environ.get("TONKA_ORB_PORT", str(_default_bridge_port()))))
-WS_URL = os.environ.get("OBS_WS_URL", os.environ.get("TONKA_OBS_WS", "ws://127.0.0.1:4455"))
+PORT = int(
+    os.environ.get(
+        "OBS_BRIDGE_PORT", os.environ.get("TONKA_ORB_PORT", str(_default_bridge_port()))
+    )
+)
+WS_URL = os.environ.get(
+    "OBS_WS_URL", os.environ.get("TONKA_OBS_WS", "ws://127.0.0.1:4455")
+)
 WS_PASS = os.environ.get("OBS_WS_PASS", os.environ.get("TONKA_OBS_WS_PASS", ""))
 
 
 def _obs_ws_password_from_config() -> str:
     """Read OBS's local WebSocket password without logging or storing it."""
     candidates = [
-        Path.home() / "Library" / "Application Support" / "obs-studio" / "plugin_config" / "obs-websocket" / "config.json",
+        Path.home()
+        / "Library"
+        / "Application Support"
+        / "obs-studio"
+        / "plugin_config"
+        / "obs-websocket"
+        / "config.json",
         Path.home() / ".config/obs-studio/plugin_config/obs-websocket/config.json",
-        Path(os.environ.get("APPDATA", "")) / "obs-studio/plugin_config/obs-websocket/config.json",
+        Path(os.environ.get("APPDATA", ""))
+        / "obs-studio/plugin_config/obs-websocket/config.json",
     ]
     for path in candidates:
         try:
@@ -83,11 +96,27 @@ if not WS_PASS:
 INPUT_NAME = os.environ.get("OBS_MIC_INPUT", os.environ.get("TONKA_MIC_INPUT", ""))
 GAIN = float(os.environ.get("OBS_ORB_GAIN", os.environ.get("TONKA_ORB_GAIN", "32.0")))
 
+# Auto-pick heuristics, used only when no mic is configured. Skip obvious
+# non-mic sources; prefer names that look like microphones. Keep these generic
+# — never put your specific device names here.
 SKIP_MIC_SUBSTR = (
-    "display", "desktop", "streambeats", "yt alert", "yt like", "like counter",
-    "nessie", "webcam", "c920", "replay", "output",
+    "display",
+    "desktop",
+    "monitor",
+    "streambeats",
+    "yt alert",
+    "yt like",
+    "like counter",
+    "replay",
+    "output",
 )
-PREFER_MIC_SUBSTR = ("headset", "external microphone", "external mic", "mic/aux", " microphone")
+PREFER_MIC_SUBSTR = (
+    "headset",
+    "external microphone",
+    "external mic",
+    "mic/aux",
+    " microphone",
+)
 ORB_POSITIONS = ("lowerRight", "rightEdge", "centerRight", "lowerCenter")
 CONFIG_SCHEMA = {
     "brandName": {"type": "text", "maxLength": 48},
@@ -186,7 +215,9 @@ def clean_color(value) -> str:
 def sanitize_config(payload: dict) -> tuple[dict, dict]:
     if not isinstance(payload, dict):
         raise ValueError("config payload must be a JSON object")
-    incoming = payload.get("config") if isinstance(payload.get("config"), dict) else payload
+    incoming = (
+        payload.get("config") if isinstance(payload.get("config"), dict) else payload
+    )
     clean: dict = {}
     errors: dict = {}
     for key, spec in CONFIG_SCHEMA.items():
@@ -244,7 +275,9 @@ def rotate_log() -> None:
     try:
         LOG_PATH.parent.mkdir(parents=True, exist_ok=True)
         if LOG_PATH.exists() and LOG_PATH.stat().st_size > MAX_LOG_BYTES:
-            LOG_PATH.write_text(LOG_PATH.read_text(encoding="utf-8")[-MAX_LOG_BYTES:], encoding="utf-8")
+            LOG_PATH.write_text(
+                LOG_PATH.read_text(encoding="utf-8")[-MAX_LOG_BYTES:], encoding="utf-8"
+            )
     except OSError:
         pass
 
@@ -419,7 +452,13 @@ class BridgeHandler(SimpleHTTPRequestHandler):
             self.send_error(404)
             return
         if not self.local_origin_allowed():
-            self.send_json({"ok": False, "error": "config writes must come from the local bridge page"}, 403)
+            self.send_json(
+                {
+                    "ok": False,
+                    "error": "config writes must come from the local bridge page",
+                },
+                403,
+            )
             return
         try:
             length = int(self.headers.get("Content-Length", "0") or 0)
@@ -427,7 +466,9 @@ class BridgeHandler(SimpleHTTPRequestHandler):
             self.send_json({"ok": False, "error": "invalid content length"}, 400)
             return
         if length < 1 or length > 32768:
-            self.send_json({"ok": False, "error": "config payload is empty or too large"}, 413)
+            self.send_json(
+                {"ok": False, "error": "config payload is empty or too large"}, 413
+            )
             return
         try:
             payload = json.loads(self.rfile.read(length).decode("utf-8"))
@@ -501,7 +542,10 @@ async def obs_session() -> None:
     async with websockets.connect(WS_URL, open_timeout=3) as ws:
         hello = json.loads(await ws.recv())
         auth = hello.get("d", {}).get("authentication")
-        identify = {"rpcVersion": hello.get("d", {}).get("rpcVersion", 1), "eventSubscriptions": 65536}
+        identify = {
+            "rpcVersion": hello.get("d", {}).get("rpcVersion", 1),
+            "eventSubscriptions": 65536,
+        }
         if auth and WS_PASS:
             secret = sha256_b64(WS_PASS + auth["salt"])
             identify["authentication"] = sha256_b64(secret + auth["challenge"])
@@ -524,7 +568,18 @@ async def obs_session() -> None:
         async def request(req_type: str, data: dict | None = None):
             nonlocal req_id
             req_id += 1
-            await ws.send(json.dumps({"op": 6, "d": {"requestType": req_type, "requestId": f"orb-{req_id}", "requestData": data or {}}}))
+            await ws.send(
+                json.dumps(
+                    {
+                        "op": 6,
+                        "d": {
+                            "requestType": req_type,
+                            "requestId": f"orb-{req_id}",
+                            "requestData": data or {},
+                        },
+                    }
+                )
+            )
 
         async def refresh_inputs(force: bool = False) -> None:
             nonlocal last_input_check, target_mic, warned_missing
@@ -553,7 +608,10 @@ async def obs_session() -> None:
             except asyncio.TimeoutError:
                 continue
 
-            if msg.get("op") == 7 and msg.get("d", {}).get("requestType") == "GetInputList":
+            if (
+                msg.get("op") == 7
+                and msg.get("d", {}).get("requestType") == "GetInputList"
+            ):
                 inputs = msg["d"].get("responseData", {}).get("inputs", [])
                 names = [i.get("inputName") for i in inputs if i.get("inputName")]
                 if not INPUT_NAME and not load_branding().get("micInputName"):
@@ -577,7 +635,10 @@ async def obs_session() -> None:
                         warned_missing = True
                 else:
                     state["status"] = "waiting_for_obs_inputs"
-            elif msg.get("op") == 5 and msg.get("d", {}).get("eventType") == "InputVolumeMeters":
+            elif (
+                msg.get("op") == 5
+                and msg.get("d", {}).get("eventType") == "InputVolumeMeters"
+            ):
                 if not state["input_found"]:
                     await refresh_inputs(force=True)
                 state["meter_seen"] = True
@@ -593,7 +654,11 @@ async def obs_session() -> None:
                     state["level"] += (state["target"] - state["level"]) * 0.55
                     if peak > 0.04 and state["status"] != "speaking":
                         state["status"] = "speaking"
-                    elif peak <= 0.04 and state["input_found"] and state["status"] == "speaking":
+                    elif (
+                        peak <= 0.04
+                        and state["input_found"]
+                        and state["status"] == "speaking"
+                    ):
                         state["status"] = "ready"
                     write_level_file()
 
@@ -612,7 +677,9 @@ async def obs_loop() -> None:
             state["status"] = "obs_offline"
             if state["logo_apply_status"] == "queued":
                 state["logo_apply_status"] = "pending_obs"
-                state["logo_apply_error"] = "OBS offline — logo will apply when OBS reconnects"
+                state["logo_apply_error"] = (
+                    "OBS offline — logo will apply when OBS reconnects"
+                )
             write_level_file()
             log(f"OBS WebSocket offline: {exc}", throttle_offline=True)
             await asyncio.sleep(3)

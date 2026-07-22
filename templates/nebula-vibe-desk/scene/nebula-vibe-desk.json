@@ -113,7 +113,7 @@
             "settings": {
                 "width": 2560,
                 "height": 1440,
-                "fps": 30,
+                "fps": 15,
                 "shutdown": false,
                 "restart_when_active": true,
                 "css": "",

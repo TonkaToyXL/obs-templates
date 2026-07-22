@@ -45,7 +45,9 @@ def validate_manifest(folder_id: str, manifest: dict) -> list[str]:
         if not manifest.get(key):
             errors.append(f"manifest missing '{key}'")
     if manifest.get("id") and manifest["id"] != folder_id:
-        errors.append(f"manifest id '{manifest['id']}' must match folder name '{folder_id}'")
+        errors.append(
+            f"manifest id '{manifest['id']}' must match folder name '{folder_id}'"
+        )
     mid = manifest.get("id", "")
     if mid and not re.fullmatch(r"[a-z0-9]+(?:-[a-z0-9]+)*", str(mid)):
         errors.append("id must be kebab-case")
@@ -68,6 +70,61 @@ def validate_scene_sources(folder_id: str, scene: dict) -> list[str]:
     if missing:
         return [f"scene missing sources: {', '.join(missing)}"]
     return []
+
+
+def validate_port_consistency(folder: Path) -> list[str]:
+    """bridgePort in branding.json must match every 127.0.0.1 port referenced by
+    the scene JSON, orb.html, and README — the exact drift that once shipped a
+    frozen orb. Also verifies {{INSTALL_DIR}} scene paths point at real files.
+    """
+    errors: list[str] = []
+    folder_id = folder.name
+    branding_path = folder / "branding.json"
+    port: int | None = None
+    if branding_path.is_file():
+        try:
+            port_raw = load_json(branding_path).get("bridgePort")
+            port = int(port_raw) if port_raw else None
+        except (OSError, json.JSONDecodeError, ValueError, TypeError):
+            port = None  # invalid branding.json is reported elsewhere
+
+    scene_dir = folder / "scene"
+    for scene_path in sorted(scene_dir.glob("*.json")) if scene_dir.is_dir() else []:
+        try:
+            scene = load_json(scene_path)
+        except (OSError, json.JSONDecodeError, ValueError):
+            continue  # invalid scene JSON is reported elsewhere
+        for src in scene.get("sources", []):
+            if not isinstance(src, dict):
+                continue
+            settings = src.get("settings", {})
+            if not isinstance(settings, dict):
+                continue
+            local_file = str(settings.get("local_file", ""))
+            if "{{INSTALL_DIR}}" in local_file:
+                rel = local_file.split("{{INSTALL_DIR}}/", 1)[-1].split("?", 1)[0]
+                if rel and not (folder / rel).is_file():
+                    errors.append(f"{folder_id}: scene references missing file: {rel}")
+            if port:
+                m = re.search(r"127\.0\.0\.1:(\d+)", str(settings.get("url", "")))
+                if m and int(m.group(1)) != port:
+                    errors.append(
+                        f"{folder_id}: scene URL port {m.group(1)} != branding.json bridgePort {port}"
+                    )
+
+    if port:
+        for rel in ("overlays/orb.html", "README.md"):
+            path = folder / rel
+            if not path.is_file():
+                continue
+            for m in re.finditer(
+                r"127\.0\.0\.1:(\d+)", path.read_text(encoding="utf-8")
+            ):
+                if int(m.group(1)) != port:
+                    errors.append(
+                        f"{folder_id}: {rel} references port {m.group(1)} != branding.json bridgePort {port}"
+                    )
+    return errors
 
 
 def validate_template_dir(folder: Path) -> list[str]:
@@ -124,6 +181,8 @@ def validate_template_dir(folder: Path) -> list[str]:
                 for msg in validate_scene_sources(folder_id, scene):
                     errors.append(f"{folder_id}: {msg}")
 
+    errors.extend(validate_port_consistency(folder))
+
     return errors
 
 
@@ -161,7 +220,11 @@ def zip_required_members(template_id: str) -> tuple[str, ...]:
 if __name__ == "__main__":
     import sys
 
-    root = Path(sys.argv[1]) if len(sys.argv) > 1 else Path(__file__).resolve().parents[1] / "templates"
+    root = (
+        Path(sys.argv[1])
+        if len(sys.argv) > 1
+        else Path(__file__).resolve().parents[1] / "templates"
+    )
     errs = validate_templates_root(root)
     if errs:
         for err in errs:
